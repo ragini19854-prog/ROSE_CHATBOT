@@ -18,6 +18,23 @@ const { wordGuess, gamew, guess, trivia } = require('./handlers/commands/games')
 // ====================== BOT INSTANCE ======================
 const bot = new Telegraf(config.botToken);
 
+const { ban, sban, tban, unban, kick, mute, tmute, unmute, warn, purge, pin, rules, welcome } 
+    = require('./handlers/commands/admin');
+
+bot.command('ban', ban);
+bot.command('sban', sban);
+bot.command('tban', tban);
+bot.command('unban', unban);
+bot.command('kick', kick);
+bot.command('mute', mute);
+bot.command('tmute', tmute);
+bot.command('unmute', unmute);
+bot.command('warn', warn);
+bot.command('purge', purge);
+bot.command('pin', pin);
+bot.command('rules', rules);
+bot.command('welcome', welcome)
+
 // ====================== MIDDLEWARES ======================
 bot.use(aiModeration);                    // AI NSFW Protection
 
