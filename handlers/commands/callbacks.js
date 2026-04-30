@@ -9,7 +9,8 @@ async function handleCallbacks(ctx) {
             [Markup.button.callback('🤖 AI ChatBot', 'chatbot_info')],
             [Markup.button.callback('🎮 Games', 'games_menu')],
             [Markup.button.callback('💰 Economy', 'economy_info')],
-            [Markup.button.callback('🛡️ AI Moderation', 'mod_info')]
+            [Markup.button.callback('🛡️ AI Moderation', 'mod_info')],
+            [Markup.button.callback('🔥 NSFW Protection', 'nsfw_protect')]
         ]);
 
         await ctx.editMessageCaption('📜 **Hinata Bot Commands**', {
@@ -41,7 +42,21 @@ async function handleCallbacks(ctx) {
         });
     }
 
-    // ==================== SUB CATEGORIES ====================
+    // ==================== NSFW PROTECTION ====================
+    else if (data === 'nsfw_protect') {
+        await ctx.editMessageText(
+            `🔥 <b>NSFW / AI Content Protection</b>\n\n` +
+            `• Real-time scanning of Text, Photos, Stickers, GIFs, Videos, Captions\n` +
+            `• Groq AI + OCR + Vision Detection\n` +
+            `• Detects: NSFW, Gore, Drugs, Scam, Toxic, Illegal content\n` +
+            `• Deletes content from <b>EVERYONE</b> including Admins\n` +
+            `• Auto punishment (warn/mute/ban) for normal users\n` +
+            `• Per-group settings (strict mode, scan types, etc.)`,
+            { parse_mode: 'HTML' }
+        );
+    }
+
+    // ==================== SUB CATEGORIES (Group Management) ====================
     else if (data === 'gm_core') {
         await ctx.editMessageText(
             `<b>👮 Core Admin Commands</b>\n\n` +
@@ -49,7 +64,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_welcome') {
         await ctx.editMessageText(
             `<b>👋 Welcome & Goodbye</b>\n\n` +
@@ -57,7 +71,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_rules') {
         await ctx.editMessageText(
             `<b>📜 Rules</b>\n\n` +
@@ -65,7 +78,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_notes') {
         await ctx.editMessageText(
             `<b>📝 Notes</b>\n\n` +
@@ -73,7 +85,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_filters') {
         await ctx.editMessageText(
             `<b>🔍 Filters</b>\n\n` +
@@ -81,7 +92,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_locks') {
         await ctx.editMessageText(
             `<b>🔒 Locks & Anti-Spam</b>\n\n` +
@@ -89,7 +99,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_captcha') {
         await ctx.editMessageText(
             `<b>🛡️ Captcha</b>\n\n` +
@@ -97,7 +106,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_blacklist') {
         await ctx.editMessageText(
             `<b>🚫 Blacklist</b>\n\n` +
@@ -105,7 +113,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_userinfo') {
         await ctx.editMessageText(
             `<b>ℹ️ User Info</b>\n\n` +
@@ -113,7 +120,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_cmdmgmt') {
         await ctx.editMessageText(
             `<b>⚙️ Command Management</b>\n\n` +
@@ -121,7 +127,6 @@ async function handleCallbacks(ctx) {
             { parse_mode: 'HTML' }
         );
     }
-
     else if (data === 'gm_connections') {
         await ctx.editMessageText(
             `<b>🔗 Connections</b>\n\n` +
@@ -130,22 +135,21 @@ async function handleCallbacks(ctx) {
         );
     }
 
-    // Other categories (keep previous)
+    // Other categories
     else if (data === 'chatbot_info') {
         await ctx.editMessageText('🤖 **AI ChatBot**\nMention / Reply / "Hinata"');
     }
-
     else if (data === 'games_menu') {
         await ctx.editMessageText('🎮 Games:\n/wordguess\n/gamew\n/guess\n/trivia');
     }
-
     else if (data === 'economy_info') {
         await ctx.editMessageText('💰 /balance\n/daily\n/weekly\n/leaderboard');
     }
-
     else if (data === 'mod_info') {
         await ctx.editMessageText('🛡️ Groq AI Moderation Active (NSFW/Gore/Spam)');
     }
 }
+
+module.exports = handleCallbacks;
 
 module.exports = handleCallbacks;
