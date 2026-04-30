@@ -2,15 +2,16 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const config = require('./config/index');
 const logger = require('./utils/logger');
-
-// Load DB
 require('./models/index');
 
-// Import handlers
 const startCommand = require('./handlers/commands/start');
 const handleCallbacks = require('./handlers/callbacks');
+const aiModeration = require('./handlers/moderation');
 
 const bot = new Telegraf(config.botToken);
+
+// Middlewares
+bot.use(aiModeration);
 
 // Commands
 bot.start(startCommand);
@@ -18,8 +19,6 @@ bot.command('ping', (ctx) => ctx.reply('🏓 Pong!'));
 
 // Callbacks
 bot.on('callback_query', handleCallbacks);
-
-// TODO: Add AI Moderation + Group Commands later
 
 bot.launch()
   .then(() => logger.info('🚀 Hinata Bot is running...'))
