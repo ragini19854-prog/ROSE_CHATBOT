@@ -2,6 +2,7 @@ const { Warning } = require('../../models');
 const { getGroup, updateGroup } = require('../../utils/groupSettings');
 const { extractTarget, mention, safeReply, isUserAdmin, parseDuration, formatDuration } = require('../../utils/helpers');
 const { requireAdmin } = require('../../middleware/admin');
+const { logEvent } = require('../../services/loggingService');
 
 async function applyWarnAction(ctx, user, group) {
   const mode = group.warnMode;
@@ -50,8 +51,12 @@ async function warnInternal(ctx, silent = false, deleteOriginal = false) {
     if (!silent) {
       await safeReply(ctx, `⚠️ ${mention(user)} reached <b>${limit}</b> warnings → ${action}.`);
     }
-  } else if (!silent) {
-    await safeReply(ctx, `⚠️ ${mention(user)} warned (<b>${count}/${limit}</b>).${reason ? `\n<b>Reason:</b> ${reason}` : ''}`);
+    logEvent('warn', { chat: ctx.chat, actor: ctx.from, target: user, reason, extra: `limit reached → ${action}` }).catch(() => {});
+  } else {
+    if (!silent) {
+      await safeReply(ctx, `⚠️ ${mention(user)} warned (<b>${count}/${limit}</b>).${reason ? `\n<b>Reason:</b> ${reason}` : ''}`);
+    }
+    logEvent('warn', { chat: ctx.chat, actor: ctx.from, target: user, reason, extra: `${count}/${limit}` }).catch(() => {});
   }
 }
 
