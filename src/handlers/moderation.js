@@ -7,6 +7,27 @@ const textCache = new Map();
 const fileCache = new Map();
 const TTL_TEXT = 5 * 60_000;
 const TTL_FILE = 30 * 60_000;
+
+// Per-chat cooldown: only one AI scan per chat every CHAT_SCAN_INTERVAL ms.
+// Hard-rule / cache hits still work instantly; only new API calls are throttled.
+const CHAT_SCAN_INTERVAL = 4_000; // 4 seconds between API scans per chat
+const chatLastScan = new Map();
+
+function chatOnCooldown(chatId) {
+  const last = chatLastScan.get(chatId);
+  return last && (Date.now() - last) < CHAT_SCAN_INTERVAL;
+}
+
+function stampChat(chatId) {
+  chatLastScan.set(chatId, Date.now());
+  if (chatLastScan.size > 2000) {
+    const cutoff = Date.now() - CHAT_SCAN_INTERVAL * 2;
+    for (const [id, ts] of chatLastScan) {
+      if (ts < cutoff) chatLastScan.delete(id);
+    }
+  }
+}
+
 const MAX_DOWNLOAD = 5 * 1024 * 1024; // 5 MB cap
 const HARD_NSFW_STICKER_KEYWORDS = ['porn','hentai','xxx','nsfw','nude','sex','adult','lewd','ecchi'];
 
@@ -77,14 +98,23 @@ async function detect(ctx) {
   const m = ctx.message;
   if (!m) return { bad: false, reason: '' };
 
+  const chatId = ctx.chat?.id;
+  const onCooldown = chatId ? chatOnCooldown(chatId) : false;
+
   // 1. Text / caption
   const text = m.text || m.caption || '';
   if (text && !text.startsWith('/')) {
     const key = text.slice(0, 200).toLowerCase();
     let bad = textCache.get(key);
     if (bad === undefined) {
-      bad = await scanText(text);
-      setCache(textCache, key, bad, TTL_TEXT);
+      if (onCooldown) {
+        // Skip live API call — chat scanned too recently; pass through as safe
+        bad = false;
+      } else {
+        if (chatId) stampChat(chatId);
+        bad = await scanText(text);
+        setCache(textCache, key, bad, TTL_TEXT);
+      }
     }
     if (bad) return { bad: true, reason: 'text' };
   }
@@ -92,23 +122,50 @@ async function detect(ctx) {
   // 2. Photo
   if (m.photo && m.photo.length) {
     const ph = pickPhoto(m.photo);
-    if (ph && await checkFileCached(ctx, ph.file_id)) return { bad: true, reason: 'image' };
+    if (ph) {
+      const cached = fileCache.get(ph.file_id);
+      if (cached !== undefined) {
+        if (cached) return { bad: true, reason: 'image' };
+      } else if (!onCooldown) {
+        if (chatId) stampChat(chatId);
+        if (await checkFileCached(ctx, ph.file_id)) return { bad: true, reason: 'image' };
+      }
+    }
   }
 
   // 3. Sticker
   if (m.sticker) {
-    if (await checkSticker(ctx, m.sticker)) return { bad: true, reason: 'sticker' };
+    const setName = (m.sticker.set_name || '').toLowerCase();
+    const hardHit = HARD_NSFW_STICKER_KEYWORDS.some((kw) => setName.includes(kw));
+    if (hardHit) return { bad: true, reason: 'sticker' };
+    if (!onCooldown) {
+      if (chatId) stampChat(chatId);
+      if (await checkSticker(ctx, m.sticker)) return { bad: true, reason: 'sticker' };
+    }
   }
 
-  // 4. Animation / GIF / Video — scan thumbnail
+  // 4. Animation / GIF / Video — scan thumbnail (respect cooldown for uncached files)
   for (const key of ['animation', 'video', 'video_note', 'document']) {
     const obj = m[key];
     if (!obj) continue;
     const thumb = obj.thumbnail || obj.thumb;
-    if (thumb && await checkFileCached(ctx, thumb.file_id)) return { bad: true, reason: key };
-    // small documents that ARE images
+    if (thumb) {
+      const cachedThumb = fileCache.get(thumb.file_id);
+      if (cachedThumb !== undefined) {
+        if (cachedThumb) return { bad: true, reason: key };
+      } else if (!onCooldown) {
+        if (chatId) stampChat(chatId);
+        if (await checkFileCached(ctx, thumb.file_id)) return { bad: true, reason: key };
+      }
+    }
     if (key === 'document' && obj.mime_type && obj.mime_type.startsWith('image/') && (obj.file_size || 0) <= MAX_DOWNLOAD) {
-      if (await checkFileCached(ctx, obj.file_id)) return { bad: true, reason: 'document-image' };
+      const cachedDoc = fileCache.get(obj.file_id);
+      if (cachedDoc !== undefined) {
+        if (cachedDoc) return { bad: true, reason: 'document-image' };
+      } else if (!onCooldown) {
+        if (chatId) stampChat(chatId);
+        if (await checkFileCached(ctx, obj.file_id)) return { bad: true, reason: 'document-image' };
+      }
     }
   }
 
