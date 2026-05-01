@@ -42,6 +42,7 @@ const groupSchema = new mongoose.Schema({
   logChannel: { type: Number, default: null },
   nsfwProtection: { type: Boolean, default: true },
   strictMode: { type: Boolean, default: false },
+  linkProtection: { type: Boolean, default: false },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Group', groupSchema);
