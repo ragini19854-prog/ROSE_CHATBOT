@@ -1,11 +1,29 @@
-const Groq = require('groq-sdk');
 const config = require('../config/index');
 const ChatMemory = require('../models/ChatMemory');
 const logger = require('../utils/logger');
-
-const groq = config.groqApiKey ? new Groq({ apiKey: config.groqApiKey }) : null;
+const limiter = require('../utils/groqLimiter');
 
 const MODEL = 'llama-3.3-70b-versatile';
+
+// ---------- per-user cooldown (10 s between chatbot replies per user) ----------
+const USER_COOLDOWN_MS = 10_000;
+const userLastCall = new Map();
+
+function isOnCooldown(userId) {
+  const last = userLastCall.get(userId);
+  return last && (Date.now() - last) < USER_COOLDOWN_MS;
+}
+
+function stampUser(userId) {
+  userLastCall.set(userId, Date.now());
+  // prune old entries to avoid memory leak
+  if (userLastCall.size > 5000) {
+    const cutoff = Date.now() - USER_COOLDOWN_MS * 2;
+    for (const [id, ts] of userLastCall) {
+      if (ts < cutoff) userLastCall.delete(id);
+    }
+  }
+}
 
 // ---------- personality ----------
 const BASE_PERSONA = `You are Hinata — a soft-spoken, warm, slightly shy anime girl who chats on Telegram.
@@ -42,7 +60,6 @@ function detectMood(text) {
 
 function buildSystem(mood, recentMoods) {
   let prompt = BASE_PERSONA;
-  // current msg + recent context: if any of last few were romantic, keep glow
   const romanticInRecent = recentMoods.filter((m) => m === 'romantic').length;
   const sadInRecent = recentMoods.filter((m) => m === 'sad').length;
 
@@ -53,7 +70,13 @@ function buildSystem(mood, recentMoods) {
 
 // ---------- main ----------
 async function getHinataReply(userId, chatId, message) {
-  if (!groq) return 'My AI brain is not configured yet. Ask the owner to set GROQ_API_KEY. 🌸';
+  if (!config.groqApiKey && !config.groqApiKey2)
+    return 'My AI brain is not configured yet. Ask the owner to set GROQ_API_KEY. 🌸';
+
+  if (isOnCooldown(userId)) {
+    return 'Heyyy, slow down a little~ give me a moment to think 🌸';
+  }
+  stampUser(userId);
 
   let memory = await ChatMemory.findOne({ userId, chatId });
   if (!memory) memory = new ChatMemory({ userId, chatId, messages: [] });
@@ -70,15 +93,17 @@ async function getHinataReply(userId, chatId, message) {
   const system = buildSystem(mood, recentUserMoods);
 
   try {
-    const res = await groq.chat.completions.create({
-      model: MODEL,
-      temperature: mood === 'romantic' ? 0.85 : mood === 'sad' ? 0.6 : 0.7,
-      max_tokens: 220,
-      messages: [
-        { role: 'system', content: system },
-        ...memory.messages.map((m) => ({ role: m.role, content: m.content })),
-      ],
-    });
+    const res = await limiter.call((groqInst) =>
+      groqInst.chat.completions.create({
+        model: MODEL,
+        temperature: mood === 'romantic' ? 0.85 : mood === 'sad' ? 0.6 : 0.7,
+        max_tokens: 220,
+        messages: [
+          { role: 'system', content: system },
+          ...memory.messages.map((m) => ({ role: m.role, content: m.content })),
+        ],
+      })
+    );
     const reply = res.choices[0]?.message?.content?.trim() || '…';
     memory.messages.push({ role: 'assistant', content: reply, timestamp: new Date() });
     while (memory.messages.length > 14) memory.messages.shift();
