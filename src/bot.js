@@ -36,6 +36,7 @@ const topicsH = require('./handlers/commands/topics');
 const federations = require('./handlers/commands/federations');
 const economy = require('./handlers/commands/economy');
 const games = require('./handlers/commands/games');
+const anime = require('./handlers/commands/anime');
 const extras = require('./handlers/commands/extras');
 const isAdmin = require('./middleware/admin');
 
@@ -78,7 +79,8 @@ bot.help(async (ctx) => {
     [Markup.button.callback('Connections', 'help_conn'), Markup.button.callback('Disabling', 'help_dis'), Markup.button.callback('Log', 'help_log')],
     [Markup.button.callback('CAPTCHA', 'help_captcha'), Markup.button.callback('AntiRaid', 'help_raid'), Markup.button.callback('Cleaning', 'help_clean')],
     [Markup.button.callback('Topics', 'help_topics'), Markup.button.callback('Federations', 'help_fed'), Markup.button.callback('Misc', 'help_misc')],
-    [Markup.button.callback('Economy', 'help_eco'), Markup.button.callback('Games', 'help_games'), Markup.button.callback('AI', 'help_ai')],
+    [Markup.button.callback('Economy', 'help_eco'), Markup.button.callback('Games', 'help_games'), Markup.button.callback('Anime', 'help_anime')],
+    [Markup.button.callback('AI Chatbot', 'help_ai')],
     [Markup.button.callback('Formatting', 'help_fmt'), Markup.button.callback('Privacy', 'help_priv'), Markup.button.callback('Languages', 'help_lang')],
   ]);
   await ctx.reply('📜 <b>Hinata Commands</b>\n\nPick a category:', { parse_mode: 'HTML', ...kb });
@@ -243,11 +245,32 @@ bot.command('fban', federations.fban);
 bot.command('unfban', federations.unfban);
 
 // Economy
-bot.command('balance', economy.balance);
+bot.command(['balance', 'wallet'], economy.balance);
+bot.command('bal', economy.bal);
 bot.command('daily', economy.daily);
 bot.command('weekly', economy.weekly);
-bot.command('leaderboard', economy.leaderboard);
+bot.command(['leaderboard', 'lb', 'top'], economy.leaderboard);
 bot.command('give', economy.give);
+bot.command('kill', economy.killGame);
+bot.command('protect', economy.protect);
+bot.command('rob', economy.rob);
+
+// Anime actions
+bot.command('hug', anime.hug);
+bot.command('pat', anime.pat);
+bot.command('slap', anime.slap);
+bot.command('kiss', anime.kiss);
+bot.command('poke', anime.poke);
+bot.command('bite', anime.bite);
+bot.command('cuddle', anime.cuddle);
+bot.command('tickle', anime.tickle);
+bot.command('wave', anime.wave);
+bot.command(['8ball', 'eightball'], anime.eightball);
+bot.command('ship', anime.ship);
+bot.command('truth', anime.truth);
+bot.command('dare', anime.dare);
+bot.command(['tod', 'truthordare'], anime.truthordare);
+bot.command('steal', anime.steal);
 
 // Games
 bot.command('wordguess', games.wordguess);
