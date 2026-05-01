@@ -158,22 +158,40 @@ const killGame = async (ctx) => {
 // ─── Protect ────────────────────────────────────────────────────────────────
 const protect = async (ctx) => {
   const arg = ((ctx.message.text || '').split(/\s+/)[1] || '').toLowerCase();
-  const plans = { '1day': { cost: 300, days: 1 }, '1d': { cost: 300, days: 1 }, '2day': { cost: 500, days: 2 }, '2d': { cost: 500, days: 2 } };
+  const plans = {
+    '1day': { cost: 300, days: 1 }, '1d': { cost: 300, days: 1 },
+    '2day': { cost: 500, days: 2 }, '2d': { cost: 500, days: 2 },
+  };
   const plan = plans[arg];
-  if (!plan) {
-    return safeReply(ctx,
-      `🛡 <b>Protection Shield</b>\n\n` +
-      `Protect yourself from /kill attacks!\n\n` +
-      `<code>/protect 1day</code> → <b>300 coins</b> (24 hours)\n` +
-      `<code>/protect 2day</code> → <b>500 coins</b> (48 hours)`);
-  }
   const w = await getW(ctx.from.id);
+  const now = new Date();
+
+  // No plan specified — show status + menu
+  if (!plan) {
+    const isActive = w.protectedUntil && w.protectedUntil > now;
+    const statusLine = isActive
+      ? `🛡 <b>Your shield is active</b> — expires <b>${w.protectedUntil.toUTCString()}</b>\n` +
+        `⏳ Time left: <b>${formatDuration(Math.floor((w.protectedUntil - now) / 1000))}</b>\n\n` +
+        `You can claim a new protection plan once your current shield expires.`
+      : `🛡 <b>You have no active shield.</b> Buy one below!\n\n` +
+        `<code>/protect 1day</code> → <b>300 coins</b> (24 hours)\n` +
+        `<code>/protect 2day</code> → <b>500 coins</b> (48 hours)`;
+    return safeReply(ctx, `🛡 <b>Protection Shield</b>\n\n${statusLine}`);
+  }
+
+  // Block purchase if still protected — must wait for expiry to claim a new plan
+  if (w.protectedUntil && w.protectedUntil > now) {
+    const left = formatDuration(Math.floor((w.protectedUntil - now) / 1000));
+    return safeReply(ctx,
+      `🛡️ You already have an <b>active shield!</b>\n` +
+      `Time left: <b>${left}</b>\n\n` +
+      `You can buy a new protection plan once your current shield expires.`);
+  }
+
   if (w.coins < plan.cost)
     return safeReply(ctx, `❌ Not enough coins! You need <b>${plan.cost}</b> but have <b>${w.coins}</b>.`);
 
-  const now = new Date();
-  const existing = w.protectedUntil && w.protectedUntil > now ? w.protectedUntil : now;
-  const newExpiry = new Date(existing.getTime() + plan.days * 24 * 3600 * 1000);
+  const newExpiry = new Date(now.getTime() + plan.days * 24 * 3600 * 1000);
   w.coins -= plan.cost;
   w.protectedUntil = newExpiry;
   await w.save();
@@ -182,7 +200,8 @@ const protect = async (ctx) => {
     `🛡️ ${mention(ctx.from)} activated a <b>${plan.days}-day shield!</b>\n` +
     `Cost: <b>${plan.cost}</b> coins deducted\n` +
     `Remaining: <b>${w.coins}</b> coins\n` +
-    `Shield expires: <b>${newExpiry.toUTCString()}</b>`);
+    `Shield expires: <b>${newExpiry.toUTCString()}</b>\n\n` +
+    `<i>You can claim a new plan after this one expires.</i>`);
 };
 
 // ─── Rob ────────────────────────────────────────────────────────────────────
