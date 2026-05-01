@@ -6,6 +6,7 @@ module.exports = {
   botToken:      process.env.BOT_TOKEN,
   botUsername:   process.env.BOT_USERNAME || 'HinataBot',
   groqApiKey:    process.env.GROQ_API_KEY,
+  groqApiKey2:   process.env.GROQ_API_KEY_2 || null,
   mongoUri:      process.env.MONGO_URI,
   ownerId:       OWNER_ID,
   sudoUsers:     process.env.SUDO_USERS
@@ -14,4 +15,5 @@ module.exports = {
   loggerGroupId: process.env.LOGGER_GROUP_ID ? parseInt(process.env.LOGGER_GROUP_ID, 10) : null,
   logLevel:      process.env.LOG_LEVEL || 'info',
   port:          process.env.PORT || 3000,
+  pingImageUrl:  process.env.PING_IMAGE_URL || 'https://i.imgur.com/4M34hi2.png',
 };
