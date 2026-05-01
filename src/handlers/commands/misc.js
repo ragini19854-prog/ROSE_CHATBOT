@@ -1,5 +1,6 @@
 const os = require('os');
 const { mention, safeReply, escapeHtml, formatDuration } = require('../../utils/helpers');
+const config = require('../../config/index');
 
 const id = async (ctx) => {
   if (ctx.message.reply_to_message) {
@@ -32,8 +33,6 @@ const info = async (ctx) => {
 const ping = async (ctx) => {
   const mongoose = require('mongoose');
   const t0 = Date.now();
-  const m = await ctx.reply('🏓 <i>pinging…</i>', { parse_mode: 'HTML' });
-  const apiMs = Date.now() - t0;
 
   // DB ping
   let dbMs = -1;
@@ -45,11 +44,12 @@ const ping = async (ctx) => {
     }
   } catch {}
 
-  const upt = formatDuration(Math.floor(process.uptime()));
+  const apiMs = Date.now() - t0;
+  const upt  = formatDuration(Math.floor(process.uptime()));
   const heap = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(1);
 
   const bar = (ms) => {
-    if (ms < 0) return '⚪️ offline';
+    if (ms < 0)   return '⚪️ offline';
     if (ms < 100) return '🟢 excellent';
     if (ms < 250) return '🟡 good';
     if (ms < 500) return '🟠 slow';
@@ -66,8 +66,12 @@ const ping = async (ctx) => {
     `┃  🛰 <b>Node</b>    : <b>${process.version}</b>\n` +
     `┗━━━━━━━━━━━━━━━━━━━━━┛\n` +
     `🌸 <i>Hinata is awake and watching.</i>`;
+
   try {
-    await ctx.telegram.editMessageText(ctx.chat.id, m.message_id, undefined, text, { parse_mode: 'HTML' });
+    await ctx.replyWithPhoto(
+      { url: config.pingImageUrl },
+      { caption: text, parse_mode: 'HTML' }
+    );
   } catch {
     await safeReply(ctx, text);
   }
