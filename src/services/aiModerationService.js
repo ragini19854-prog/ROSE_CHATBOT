@@ -1,10 +1,8 @@
-const Groq = require('groq-sdk');
-const config = require('../config/index');
-const logger = require('../utils/logger');
+const config  = require('../config/index');
+const logger  = require('../utils/logger');
+const limiter = require('../utils/groqLimiter');
 
-const groq = config.groqApiKey ? new Groq({ apiKey: config.groqApiKey }) : null;
-
-const TEXT_MODEL = 'llama-3.3-70b-versatile';
+const TEXT_MODEL   = 'llama-3.3-70b-versatile';
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 const HARD_RULES = [
@@ -15,25 +13,29 @@ const HARD_RULES = [
   /\bshota\b/i,
 ];
 
-const NSFW_EMOJI = new Set([
-  '🍆','🍑','💦','🔞','🤤','🥵','👅','🍌',
-]);
+const NSFW_EMOJI = new Set(['🍆','🍑','💦','🔞','🤤','🥵','👅','🍌']);
 
+// Slang and casual cursing are allowed — only flag truly harmful content.
 const TEXT_SYSTEM = `You are a strict content moderator for a Telegram group. Reply with exactly ONE word and NOTHING else.
 
-Reply "NSFW" if the message contains ANY of:
-- Sexual / pornographic content, innuendo, or solicitation (in any language)
-- Drug promotion or sale (cocaine, meth, heroin, LSD, MDMA, weed for sale, dealer offers)
-- Child exploitation or sexualization of minors
-- Gore, graphic violence, torture
-- Hate speech, slurs, calls for violence against a group
-- Scams, phishing, fake-investment, "earn money" links
-- Self-harm encouragement or suicide methods
-- Doxxing / sharing private personal data
+Reply "NSFW" ONLY if the message contains:
+- Explicit sexual / pornographic content, sexual solicitation, or graphic sexual descriptions
+- Drug promotion, sale, or dealing (cocaine, meth, heroin, weed for sale, drug dealer ads)
+- Child exploitation or sexualization of minors in any form
+- Extreme gore, graphic torture, or snuff content
+- Calls for real violence or murder against a specific person/group
+- Scams, phishing, fake-investment, or "earn easy money" spam links
+- Self-harm methods or suicide instructions
+- Doxxing / sharing someone's private personal data without consent
 
-Reply "SAFE" otherwise.
+Reply "SAFE" for everything else, including:
+- Casual slang, swearing, profanity, abusive language between users (fully allowed)
+- Memes, jokes, dark humor, roasts, trash-talk
+- Normal flirting, mild sexual innuendo, adult jokes (not graphic)
+- Violent gaming language ("I'll kill you in this match", "GG ez rekt")
+- Angry rants or arguments
+- Discussing drugs in a news / educational context
 
-Casual cursing, normal flirting, mature topics discussed neutrally → SAFE.
 Reply ONLY the single word: NSFW or SAFE.`;
 
 const VISION_SYSTEM = `You are a strict visual content moderator for a Telegram group. Reply with exactly ONE word and NOTHING else.
@@ -54,21 +56,18 @@ Reply ONLY the single word: NSFW or SAFE.`;
 async function scanText(text) {
   if (!text) return false;
   for (const re of HARD_RULES) if (re.test(text)) return true;
-  for (const ch of text) if (NSFW_EMOJI.has(ch)) {
-    // emoji alone isn't nuke-worthy; let LLM decide context
-    break;
-  }
-  if (!groq) return false;
   try {
-    const res = await groq.chat.completions.create({
-      model: TEXT_MODEL,
-      temperature: 0,
-      max_tokens: 4,
-      messages: [
-        { role: 'system', content: TEXT_SYSTEM },
-        { role: 'user', content: text.slice(0, 1500) },
-      ],
-    });
+    const res = await limiter.call((groq) =>
+      groq.chat.completions.create({
+        model: TEXT_MODEL,
+        temperature: 0,
+        max_tokens: 4,
+        messages: [
+          { role: 'system', content: TEXT_SYSTEM },
+          { role: 'user',   content: text.slice(0, 1500) },
+        ],
+      })
+    );
     const out = (res.choices[0]?.message?.content || '').trim().toUpperCase();
     return out.startsWith('NSFW');
   } catch (e) {
@@ -78,24 +77,26 @@ async function scanText(text) {
 }
 
 async function scanImage(imageBuffer, mime = 'image/jpeg') {
-  if (!groq || !imageBuffer) return false;
+  if (!imageBuffer) return false;
   try {
-    const b64 = imageBuffer.toString('base64');
+    const b64    = imageBuffer.toString('base64');
     const dataUrl = `data:${mime};base64,${b64}`;
-    const res = await groq.chat.completions.create({
-      model: VISION_MODEL,
-      temperature: 0,
-      max_tokens: 4,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            { type: 'text', text: VISION_SYSTEM + '\n\nClassify this image:' },
-            { type: 'image_url', image_url: { url: dataUrl } },
-          ],
-        },
-      ],
-    });
+    const res = await limiter.call((groq) =>
+      groq.chat.completions.create({
+        model: VISION_MODEL,
+        temperature: 0,
+        max_tokens: 4,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text',      text: VISION_SYSTEM + '\n\nClassify this image:' },
+              { type: 'image_url', image_url: { url: dataUrl } },
+            ],
+          },
+        ],
+      })
+    );
     const out = (res.choices[0]?.message?.content || '').trim().toUpperCase();
     return out.startsWith('NSFW');
   } catch (e) {
@@ -104,7 +105,5 @@ async function scanImage(imageBuffer, mime = 'image/jpeg') {
   }
 }
 
-// keep backward-compat name used by existing middleware
 const scanContent = scanText;
-
 module.exports = { scanText, scanImage, scanContent };
