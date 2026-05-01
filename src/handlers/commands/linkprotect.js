@@ -12,6 +12,7 @@
 
 const { getGroup, updateGroup } = require('../../utils/groupSettings');
 const { safeReply } = require('../../utils/helpers');
+const { logLinkRemoved } = require('../../services/loggingService');
 
 // Matches http/https links, bare www. links, and t.me invite/profile links
 const LINK_REGEX = /(?:https?:\/\/|www\.)[^\s<>]+|t\.me\/[^\s<>]+/i;
@@ -73,8 +74,9 @@ const linkProtectMiddleware = async (ctx, next) => {
   } catch {}
   if (isApproved) return next();
 
-  // Delete the offending message
+  // Delete the offending message and log it
   try { await ctx.deleteMessage(); } catch {}
+  logLinkRemoved(ctx).catch(() => {});
 
   const userTag = ctx.from.first_name
     ? `<a href="tg://user?id=${ctx.from.id}">${ctx.from.first_name}</a>`
