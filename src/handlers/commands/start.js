@@ -51,15 +51,15 @@ const startCommand = async (ctx) => {
 
   const kb = Markup.inlineKeyboard([
     [
-      Markup.button.url('➕ Add me to your group', `https://t.me/${ctx.botInfo.username}?startgroup=true`),
+      Markup.button.url('CLICK HERE TO SEE MAGIC', `https://t.me/${ctx.botInfo.username}?startgroup=true`),
     ],
     [
       Markup.button.callback('📜 Commands', 'help_main'),
-      Markup.button.callback('ℹ️ About', 'about'),
+      Markup.button.callback('ℹ️ Source code', 'https://i.ibb.co/fzHHgQ1S/image.jpg'),
     ],
     [
       Markup.button.url('👨‍💻 Developer', `tg://user?id=${config.ownerId}`),
-      Markup.button.url('🌐 Channel', 'https://t.me/yourchannel'),
+      Markup.button.url('🌐 Channel', 'https://t.me/+1NRRqUd1replNTM1'),
     ],
   ]);
 
