@@ -1,5 +1,6 @@
 const { extractTarget, mention, parseDuration, formatDuration, safeReply, isUserAdmin } = require('../../utils/helpers');
 const { requireAdmin } = require('../../middleware/admin');
+const { logEvent } = require('../../services/loggingService');
 
 const mutedPerms = {
   can_send_messages: false,
@@ -38,6 +39,7 @@ const mute = requireAdmin(async (ctx) => {
   try {
     await ctx.restrictChatMember(user.id, { permissions: mutedPerms });
     await safeReply(ctx, `🔇 ${mention(user)} has been muted.${reason ? `\n<b>Reason:</b> ${reason}` : ''}`);
+    logEvent('mute', { chat: ctx.chat, actor: ctx.from, target: user, reason }).catch(() => {});
   } catch (e) {
     await safeReply(ctx, `❌ ${e.description || e.message}`);
   }
@@ -80,6 +82,7 @@ const tmute = requireAdmin(async (ctx) => {
   try {
     await ctx.restrictChatMember(user.id, { permissions: mutedPerms, until_date: until });
     await safeReply(ctx, `🔇 ${mention(user)} muted for <b>${formatDuration(duration)}</b>.${reason ? `\n<b>Reason:</b> ${reason}` : ''}`);
+    logEvent('mute', { chat: ctx.chat, actor: ctx.from, target: user, reason, duration: formatDuration(duration) }).catch(() => {});
   } catch (e) {
     await safeReply(ctx, `❌ ${e.description || e.message}`);
   }
@@ -91,6 +94,7 @@ const unmute = requireAdmin(async (ctx) => {
   try {
     await ctx.restrictChatMember(user.id, { permissions: unmutedPerms });
     await safeReply(ctx, `🔊 ${mention(user)} has been unmuted.`);
+    logEvent('unmute', { chat: ctx.chat, actor: ctx.from, target: user }).catch(() => {});
   } catch (e) {
     await safeReply(ctx, `❌ ${e.description || e.message}`);
   }
