@@ -39,6 +39,7 @@ const games = require('./handlers/commands/games');
 const anime = require('./handlers/commands/anime');
 const extras = require('./handlers/commands/extras');
 const ownerCmds = require('./handlers/commands/owner');
+const linkprotect = require('./handlers/commands/linkprotect');
 const isAdmin = require('./middleware/admin');
 const { init: initLogger } = require('./services/loggingService');
 
@@ -62,6 +63,7 @@ bot.use(pins.antiChannelPinMiddleware);            // anti-channel-pin
 bot.use(locks.lockMiddleware);                     // locks
 bot.use(blocklists.blacklistMiddleware);           // blocklists
 bot.use(antiflood.antifloodMiddleware);            // antiflood
+bot.use(linkprotect.linkProtectMiddleware);         // link protection
 bot.use(aiModeration);                             // Groq AI scan
 bot.use(games.triviaMiddleware);                   // trivia answers
 bot.use(notes.hashtagMiddleware);                  // #notename
@@ -191,6 +193,9 @@ bot.command('unapprove', approval.unapprove);
 bot.command('approval', approval.approval);
 bot.command('approved', approval.approved);
 bot.command('unapproveall', approval.unapproveall);
+
+// Link Protection
+bot.command('linkprotect', linkprotect.linkprotect);
 
 // Misc
 bot.command('id', misc.id);
