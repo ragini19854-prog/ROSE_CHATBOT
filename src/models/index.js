@@ -25,4 +25,5 @@ module.exports = {
   DisabledCommand: require('./DisabledCommand'),
   Connection: require('./Connection'),
   Federation: require('./Federation'),
+  BotSettings: require('./BotSettings'),
 };

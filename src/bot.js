@@ -38,7 +38,9 @@ const economy = require('./handlers/commands/economy');
 const games = require('./handlers/commands/games');
 const anime = require('./handlers/commands/anime');
 const extras = require('./handlers/commands/extras');
+const ownerCmds = require('./handlers/commands/owner');
 const isAdmin = require('./middleware/admin');
+const { init: initLogger } = require('./services/loggingService');
 
 if (!config.botToken) {
   logger.error('❌ BOT_TOKEN is missing.');
@@ -287,6 +289,20 @@ bot.command(['importchat', 'import'], extras.importchat);
 bot.command(['protection', 'safemode', 'nsfw'], extras.protection);
 bot.command('strictmode', extras.strictmode);
 
+// Owner / Sudo commands
+bot.command(['addcoins', 'givecoins'], ownerCmds.addcoins);
+bot.command(['removecoins', 'takecoins', 'deductcoins'], ownerCmds.removecoins);
+bot.command('setcoins', ownerCmds.setcoins);
+bot.command('botban', ownerCmds.botban);
+bot.command('botunban', ownerCmds.botunban);
+bot.command('botbanned', ownerCmds.botbanned);
+bot.command('addsudo', ownerCmds.addsudo);
+bot.command('removesudo', ownerCmds.removesudo);
+bot.command(['sudolist', 'sudo'], ownerCmds.sudolist);
+bot.command(['setloggergroup', 'setlogger'], ownerCmds.setloggergroup);
+bot.command('broadcast', ownerCmds.broadcast);
+bot.command(['ownerinfo', 'owner'], ownerCmds.ownerinfo);
+
 // AI Chatbot — run after all commands
 bot.on('text', chatbotHandler);
 bot.on('callback_query', handleCallbacks);
@@ -303,6 +319,7 @@ bot.launch().then(() => logger.info('🚀 Hinata Bot polling stopped.')).catch((
   process.exit(1);
 });
 
+initLogger(bot);
 logger.info('🌸 Hinata starting…');
 
 process.once('SIGINT', () => bot.stop('SIGINT'));

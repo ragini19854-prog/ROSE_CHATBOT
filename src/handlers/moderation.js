@@ -1,5 +1,6 @@
 const { scanText, scanImage } = require('../services/aiModerationService');
 const { getGroup } = require('../utils/groupSettings');
+const { logEvent } = require('../services/loggingService');
 const logger = require('../utils/logger');
 
 const textCache = new Map();
@@ -146,6 +147,7 @@ async function aiModeration(ctx, next) {
       { parse_mode: 'HTML' }
     );
   } catch {}
+  logEvent('nsfw', { chat: ctx.chat, target: ctx.from, reason: result.reason }).catch(() => {});
 
   // Optional escalation in strict mode (don't restrict admins, just warn)
   if (group.strictMode) {

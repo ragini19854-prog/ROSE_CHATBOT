@@ -1,12 +1,17 @@
 require('dotenv').config();
 
+const OWNER_ID = 8441236350; // hardcoded owner — always has full power
+
 module.exports = {
-  botToken: process.env.BOT_TOKEN,
-  botUsername: process.env.BOT_USERNAME || 'HinataBot',
-  groqApiKey: process.env.GROQ_API_KEY,
-  mongoUri: process.env.MONGO_URI,
-  ownerId: parseInt(process.env.OWNER_ID),
-  sudoUsers: process.env.SUDO_USERS ? process.env.SUDO_USERS.split(',').map(id => parseInt(id)) : [],
-  logLevel: process.env.LOG_LEVEL || 'info',
-  port: process.env.PORT || 3000,
+  botToken:      process.env.BOT_TOKEN,
+  botUsername:   process.env.BOT_USERNAME || 'HinataBot',
+  groqApiKey:    process.env.GROQ_API_KEY,
+  mongoUri:      process.env.MONGO_URI,
+  ownerId:       OWNER_ID,
+  sudoUsers:     process.env.SUDO_USERS
+    ? process.env.SUDO_USERS.split(',').map((id) => parseInt(id.trim(), 10)).filter(Boolean)
+    : [],
+  loggerGroupId: process.env.LOGGER_GROUP_ID ? parseInt(process.env.LOGGER_GROUP_ID, 10) : null,
+  logLevel:      process.env.LOG_LEVEL || 'info',
+  port:          process.env.PORT || 3000,
 };
