@@ -1,5 +1,6 @@
 const { extractTarget, mention, parseDuration, formatDuration, safeReply, isUserAdmin } = require('../../utils/helpers');
 const { requireAdmin } = require('../../middleware/admin');
+const { logEvent } = require('../../services/loggingService');
 
 async function doBan(ctx, until = 0) {
   const { user, reason } = await extractTarget(ctx);
@@ -17,6 +18,7 @@ const ban = requireAdmin(async (ctx) => {
   const r = await doBan(ctx);
   if (!r) return;
   await safeReply(ctx, `🔨 ${mention(r.user)} has been banned.${r.reason ? `\n<b>Reason:</b> ${r.reason}` : ''}`);
+  logEvent('ban', { chat: ctx.chat, actor: ctx.from, target: r.user, reason: r.reason }).catch(() => {});
 });
 
 const sban = requireAdmin(async (ctx) => {
@@ -34,6 +36,7 @@ const dban = requireAdmin(async (ctx) => {
   if (!r) return;
   try { await ctx.deleteMessage(ctx.message.reply_to_message.message_id); } catch {}
   await safeReply(ctx, `🔨 ${mention(r.user)} has been banned and message deleted.`);
+  logEvent('ban', { chat: ctx.chat, actor: ctx.from, target: r.user, reason: r.reason, extra: 'message deleted' }).catch(() => {});
 });
 
 const tban = requireAdmin(async (ctx) => {
@@ -49,6 +52,7 @@ const tban = requireAdmin(async (ctx) => {
   const r = await doBan(ctx, until);
   if (!r) return;
   await safeReply(ctx, `⏳ ${mention(r.user)} banned for <b>${formatDuration(duration)}</b>.${r.reason ? `\n<b>Reason:</b> ${r.reason}` : ''}`);
+  logEvent('ban', { chat: ctx.chat, actor: ctx.from, target: r.user, reason: r.reason, duration: formatDuration(duration) }).catch(() => {});
 });
 
 const unban = requireAdmin(async (ctx) => {
@@ -57,6 +61,7 @@ const unban = requireAdmin(async (ctx) => {
   try {
     await ctx.unbanChatMember(user.id, { only_if_banned: false });
     await safeReply(ctx, `✅ ${mention(user)} has been unbanned.`);
+    logEvent('unban', { chat: ctx.chat, actor: ctx.from, target: user }).catch(() => {});
   } catch (e) {
     await safeReply(ctx, `❌ Could not unban: ${e.description || e.message}`);
   }
@@ -70,6 +75,7 @@ const kick = requireAdmin(async (ctx) => {
     await ctx.banChatMember(user.id);
     await ctx.unbanChatMember(user.id);
     await safeReply(ctx, `👢 ${mention(user)} has been kicked.${reason ? `\n<b>Reason:</b> ${reason}` : ''}`);
+    logEvent('kick', { chat: ctx.chat, actor: ctx.from, target: user, reason }).catch(() => {});
   } catch (e) {
     await safeReply(ctx, `❌ Could not kick: ${e.description || e.message}`);
   }
