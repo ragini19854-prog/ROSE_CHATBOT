@@ -61,24 +61,12 @@ function pickPhoto(photos) {
   return photos[0];
 }
 
-async function checkSticker(ctx, sticker) {
+function checkSticker(sticker) {
   if (!sticker) return false;
   const setName = (sticker.set_name || '').toLowerCase();
-  const emoji = sticker.emoji || '';
-  for (const kw of HARD_NSFW_STICKER_KEYWORDS) {
-    if (setName.includes(kw)) return true;
-  }
-  // text-scan emoji + set name
-  const ctxStr = `Sticker pack "${setName}" with emoji ${emoji}`;
-  const cached = textCache.get(ctxStr);
-  if (cached !== undefined) return cached;
-  const bad = await scanText(ctxStr);
-  setCache(textCache, ctxStr, bad, TTL_TEXT);
-  if (bad) return true;
-  // also vision-scan the sticker thumbnail
-  const fileId = sticker.thumbnail?.file_id || sticker.thumb?.file_id || sticker.file_id;
-  if (!fileId) return false;
-  return await checkFileCached(ctx, fileId);
+  // Only block stickers from packs whose name contains a hard NSFW keyword.
+  // No vision scan — nsfwjs has too many false positives on anime/cartoon thumbnails.
+  return HARD_NSFW_STICKER_KEYWORDS.some((kw) => setName.includes(kw));
 }
 
 async function checkFileCached(ctx, fileId) {
@@ -131,13 +119,10 @@ async function detect(ctx) {
   }
 
   // ── 3. Sticker ───────────────────────────────────────────────────────────────
-  // Hard keyword check is instant; full scan uses file cache (never skipped).
+  // Only block stickers from packs with NSFW keywords in the pack name.
+  // No vision scan — too many false positives on anime/cartoon thumbnails.
   if (m.sticker) {
-    const setName = (m.sticker.set_name || '').toLowerCase();
-    if (HARD_NSFW_STICKER_KEYWORDS.some((kw) => setName.includes(kw))) {
-      return { bad: true, reason: 'sticker' };
-    }
-    if (await checkSticker(ctx, m.sticker)) return { bad: true, reason: 'sticker' };
+    if (checkSticker(m.sticker)) return { bad: true, reason: 'sticker' };
   }
 
   // ── 4. Animation / GIF / Video / Image-document ───────────────────────────────
