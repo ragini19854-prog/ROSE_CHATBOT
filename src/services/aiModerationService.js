@@ -1,21 +1,30 @@
+/**
+ * NSFW Moderation — layered pipeline
+ *
+ * TEXT:
+ *   1. Rule engine (instant, free, no network) → NSFW?  stop here.
+ *   2. AI (5-s timeout) for edge cases rules marked SAFE  → NSFW?  stop here.
+ *   3. AI unavailable → rule result is final (fail-open only for edge cases).
+ *
+ * IMAGE:
+ *   1. Caption through full rule engine (caption usually describes the image).
+ *   2. AI vision scan (5-s timeout) on the image buffer.
+ *   3. AI unavailable → caption result only (fail-open for pixel content).
+ *
+ * Non-AI commands are NEVER blocked by this file.
+ */
+
+'use strict';
+
 const logger  = require('../utils/logger');
 const limiter = require('../utils/groqLimiter');
+const { checkText, checkImageCaption } = require('../utils/nsfwRules');
 
 const TEXT_MODEL   = 'llama-3.3-70b-versatile';
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+const AI_TIMEOUT   = 5_000;
 
-// Hard timeout for every AI call — if AI doesn't respond in time, fail open (SAFE)
-const AI_TIMEOUT_MS = 5_000;
-
-const HARD_RULES = [
-  /\bcp\b/i,
-  /\bchild\s*(porn|sex|abuse|exploit)/i,
-  /\bsuicide\s+method/i,
-  /\bloli(con)?\b/i,
-  /\bshota\b/i,
-];
-
-const NSFW_EMOJI = new Set(['🍆','🍑','💦','🔞','🤤','🥵','👅','🍌']);
+// ── AI prompts ────────────────────────────────────────────────────────────────
 
 const TEXT_SYSTEM = `You are a strict content moderator for a Telegram group. Reply with exactly ONE word and NOTHING else.
 
@@ -54,6 +63,8 @@ Reply "SAFE" otherwise — including normal selfies, memes, anime art that is fu
 
 Reply ONLY the single word: NSFW or SAFE.`;
 
+// ── helpers ───────────────────────────────────────────────────────────────────
+
 function withTimeout(promise, ms) {
   return Promise.race([
     promise,
@@ -63,9 +74,7 @@ function withTimeout(promise, ms) {
   ]);
 }
 
-async function scanText(text) {
-  if (!text) return false;
-  for (const re of HARD_RULES) if (re.test(text)) return true;
+async function aiCheckText(text) {
   try {
     const res = await withTimeout(
       limiter.call((groq) =>
@@ -79,21 +88,18 @@ async function scanText(text) {
           ],
         })
       ),
-      AI_TIMEOUT_MS
+      AI_TIMEOUT
     );
-    const out = (res.choices[0]?.message?.content || '').trim().toUpperCase();
-    return out.startsWith('NSFW');
+    return (res.choices[0]?.message?.content || '').trim().toUpperCase().startsWith('NSFW');
   } catch (e) {
-    logger.warn(`Groq text-moderation error: ${e.message?.slice(0, 120)}`);
-    return false; // fail open — never block a message because AI is down
+    logger.warn(`Groq text-mod unavailable: ${e.message?.slice(0, 100)}`);
+    return null; // null = AI was unavailable
   }
 }
 
-async function scanImage(imageBuffer, mime = 'image/jpeg') {
-  if (!imageBuffer) return false;
+async function aiCheckImage(buffer, mime) {
   try {
-    const b64     = imageBuffer.toString('base64');
-    const dataUrl = `data:${mime};base64,${b64}`;
+    const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`;
     const res = await withTimeout(
       limiter.call((groq) =>
         groq.chat.completions.create({
@@ -111,15 +117,75 @@ async function scanImage(imageBuffer, mime = 'image/jpeg') {
           ],
         })
       ),
-      AI_TIMEOUT_MS
+      AI_TIMEOUT
     );
-    const out = (res.choices[0]?.message?.content || '').trim().toUpperCase();
-    return out.startsWith('NSFW');
+    return (res.choices[0]?.message?.content || '').trim().toUpperCase().startsWith('NSFW');
   } catch (e) {
-    logger.warn(`Groq vision-moderation error: ${e.message?.slice(0, 120)}`);
-    return false; // fail open
+    logger.warn(`Groq vision-mod unavailable: ${e.message?.slice(0, 100)}`);
+    return null; // null = AI was unavailable
   }
 }
 
+// ── public API ────────────────────────────────────────────────────────────────
+
+/**
+ * Scan text for NSFW content.
+ * Returns true (NSFW) or false (safe). Never throws.
+ */
+async function scanText(text) {
+  if (!text) return false;
+
+  // Layer 1 — rules (instant)
+  const { nsfw: ruleHit, reason } = checkText(text);
+  if (ruleHit) {
+    logger.warn(`NSFW [rules] ${reason}`);
+    return true;
+  }
+
+  // Layer 2 — AI for edge cases (only if rules said SAFE)
+  const aiResult = await aiCheckText(text);
+  if (aiResult === true)  return true;
+  if (aiResult === false) return false;
+
+  // Layer 3 — AI unavailable → trust rules (already said SAFE → fail open)
+  return false;
+}
+
+/**
+ * Scan an image for NSFW content.
+ * Returns true (NSFW) or false (safe). Never throws.
+ */
+async function scanImage(imageBuffer, mime = 'image/jpeg') {
+  if (!imageBuffer) return false;
+
+  // Layer 1 — no-AI image rules (only works when caption is embedded in the call
+  //            via the sticker/document path; raw buffers have no text to check here)
+
+  // Layer 2 — AI vision (primary for images; rules can't read pixels)
+  const aiResult = await aiCheckImage(imageBuffer, mime);
+  if (aiResult === true)  return true;
+  if (aiResult === false) return false;
+
+  // Layer 3 — AI unavailable → fail open (safer than false positives)
+  return false;
+}
+
+/**
+ * Scan an image's caption (text) for NSFW content.
+ * Used by moderation.js before downloading the image.
+ * Returns true (NSFW) or false (safe). Never throws.
+ */
+async function scanCaption(caption) {
+  if (!caption) return false;
+  const { nsfw, reason } = checkImageCaption(caption);
+  if (nsfw) {
+    logger.warn(`NSFW [caption-rules] ${reason}`);
+    return true;
+  }
+  // AI pass for caption edge cases
+  const aiResult = await aiCheckText(caption);
+  return aiResult === true;
+}
+
 const scanContent = scanText;
-module.exports = { scanText, scanImage, scanContent };
+module.exports = { scanText, scanImage, scanCaption, scanContent };
