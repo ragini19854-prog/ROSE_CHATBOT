@@ -1,35 +1,30 @@
 /**
- * Groq rate-limiter with dual-API failover + circuit breaker + auto-recovery
+ * Groq rate-limiter — dual-API failover, circuit breaker, auto-recovery.
  *
- * Free tier limit: 30 RPM per model.
- * Target: 24 RPM (1 call per 2.5 s) — safe under the hard cap.
+ * Key behaviour:
+ *   RPM 429  — retry once with a short fixed backoff (no endless loops)
+ *   TPD 429  — fail immediately on this key, switch to the other key right now
+ *   Both TPD — reject instantly; callers get a fast error, never a 90-s timeout
  *
- * Key switching:
- *   PRIMARY   — uses GROQ_API_KEY (env)
- *   BACKUP    — uses GROQ_API_KEY_2 (env) when primary circuit opens
- *
- * Circuit breaker states (per key slot):
- *   CLOSED    — normal; calls go through
- *   OPEN      — too many failures; calls blocked, background probe runs
- *   HALF_OPEN — one probe in-flight to test recovery
- *
- * Callers never need to handle 429 / outage errors.
+ * Every call is also capped by CALL_TIMEOUT_MS so a hung Groq request can't
+ * block the Telegraf update pipeline.
  */
 
 const Groq   = require('groq-sdk');
 const config = require('../config/index');
 const logger = require('./logger');
 
-const INTERVAL_MS       = 2500;   // 24 calls/min
-const MAX_RETRIES       = 4;      // 429 retries per call
-const MAX_QUEUE         = 50;     // evict oldest when queue is full
-const FAILURE_THRESHOLD = 5;      // consecutive failures before opening circuit
-const RECOVERY_INTERVAL = 60_000; // ms between circuit-breaker probes
-const PROBE_TIMEOUT     = 15_000; // probe must respond within 15 s
+const INTERVAL_MS        = 2500;   // 24 calls / min
+const CALL_TIMEOUT_MS    = 8_000;  // hard per-call wall-clock timeout
+const RPM_BACKOFF_MS     = 3_000;  // fixed wait on an RPM-429 (1 retry only)
+const MAX_QUEUE          = 50;
+const FAILURE_THRESHOLD  = 3;      // consecutive failures before opening circuit
+const RECOVERY_INTERVAL  = 90_000; // ms between background probes
+const PROBE_TIMEOUT      = 10_000;
+
+const TPD_RESET_MS = 24 * 60 * 60 * 1000; // 24 h
 
 const STATE = { CLOSED: 'CLOSED', OPEN: 'OPEN', HALF_OPEN: 'HALF_OPEN' };
-
-// ─── one circuit per API key slot ─────────────────────────────────────────────
 
 function makeCircuit(apiKey, label) {
   return {
@@ -37,6 +32,7 @@ function makeCircuit(apiKey, label) {
     groq:         apiKey ? new Groq({ apiKey }) : null,
     state:        STATE.CLOSED,
     failures:     0,
+    tpdUntil:     0,   // epoch ms — key is TPD-blocked until this time
     probeTimer:   null,
     probeRunning: false,
   };
@@ -48,52 +44,53 @@ class GroqLimiter {
     this._running = false;
     this._primary = makeCircuit(config.groqApiKey,  'PRIMARY');
     this._backup  = makeCircuit(config.groqApiKey2, 'BACKUP');
-    this._active  = this._primary; // slot currently in use
+    this._active  = this._primary;
   }
 
-  // ─── public API ─────────────────────────────────────────────────────────────
+  // ── public ───────────────────────────────────────────────────────────────────
 
-  /**
-   * Schedule a Groq API call.
-   * @param {(groq: Groq) => Promise<any>} fn  accepts a Groq instance
-   */
   call(fn) {
     return new Promise((resolve, reject) => {
       const slot = this._pickSlot();
       if (!slot) {
-        reject(new Error('All Groq API keys are currently unavailable. Auto-recovering…'));
+        reject(new Error('All Groq API keys are unavailable (TPD / circuit open). Will auto-recover.'));
         return;
       }
       if (this._queue.length >= MAX_QUEUE) this._queue.shift();
-      this._queue.push({ fn, resolve, reject, retries: 0 });
+      this._queue.push({ fn, resolve, reject, rpmRetried: false });
       if (!this._running) this._drain();
     });
   }
 
-  // ─── slot selection ──────────────────────────────────────────────────────────
+  // ── slot selection ────────────────────────────────────────────────────────────
 
   _pickSlot() {
-    if (this._active.state !== STATE.OPEN && this._active.groq) return this._active;
-    // active slot is open — try the other one
+    if (this._isUsable(this._active)) return this._active;
+
     const other = this._active === this._primary ? this._backup : this._primary;
-    if (other.groq && other.state !== STATE.OPEN) {
-      const was = this._active.label;
+    if (this._isUsable(other)) {
+      logger.warn(`🔄 Groq failover: ${this._active.label} → ${other.label}`);
       this._active = other;
-      logger.warn(`🔄 Groq failover: switched from ${was} → ${other.label}`);
       return other;
     }
-    return null; // both circuits open
+    return null;
   }
 
-  // ─── drain loop ──────────────────────────────────────────────────────────────
+  _isUsable(slot) {
+    if (!slot?.groq) return false;
+    if (slot.state === STATE.OPEN) return false;
+    if (slot.tpdUntil > Date.now()) return false;
+    return true;
+  }
+
+  // ── drain loop ────────────────────────────────────────────────────────────────
 
   async _drain() {
     this._running = true;
     while (this._queue.length > 0) {
       const slot = this._pickSlot();
       if (!slot) {
-        // Both circuits open — flush remaining with rejection
-        const err = new Error('All Groq API keys are currently unavailable. Auto-recovering…');
+        const err = new Error('All Groq API keys are unavailable. Will auto-recover.');
         while (this._queue.length > 0) this._queue.shift().reject(err);
         break;
       }
@@ -104,19 +101,38 @@ class GroqLimiter {
     this._running = false;
   }
 
-  // ─── execute one call ────────────────────────────────────────────────────────
+  // ── execute one call ──────────────────────────────────────────────────────────
 
   async _execute(item, slot) {
     try {
-      const result = await item.fn(slot.groq);
+      const result = await Promise.race([
+        item.fn(slot.groq),
+        _timeout(CALL_TIMEOUT_MS, `Groq [${slot.label}] call timed out after ${CALL_TIMEOUT_MS}ms`),
+      ]);
       this._onSuccess(slot);
       item.resolve(result);
     } catch (err) {
-      if (_is429(err) && item.retries < MAX_RETRIES) {
-        const wait = _retryAfter(err);
-        logger.warn(`Groq [${slot.label}] 429 — backing off ${wait}ms (attempt ${item.retries + 1}/${MAX_RETRIES})`);
-        await _sleep(wait);
-        item.retries += 1;
+      if (_isTPD(err)) {
+        // Tokens-per-day exhausted — no retrying helps; block this key and switch
+        const resetIn = _tpdResetMs(err);
+        slot.tpdUntil = Date.now() + resetIn;
+        logger.warn(`Groq [${slot.label}] TPD exhausted — blocking key for ${Math.round(resetIn / 60000)} min`);
+
+        // Try the other key immediately
+        const other = slot === this._primary ? this._backup : this._primary;
+        if (this._isUsable(other)) {
+          this._active = other;
+          logger.info(`🔄 Groq TPD failover → ${other.label}`);
+          this._queue.unshift(item); // re-queue for the other key
+        } else {
+          logger.error('Both Groq keys are TPD-exhausted. Failing fast.');
+          item.reject(err);
+        }
+      } else if (_isRPM(err) && !item.rpmRetried) {
+        // Rate-per-minute — one short retry, then give up
+        item.rpmRetried = true;
+        logger.warn(`Groq [${slot.label}] RPM 429 — one retry in ${RPM_BACKOFF_MS}ms`);
+        await _sleep(RPM_BACKOFF_MS);
         this._queue.unshift(item);
       } else {
         this._onFailure(slot, err);
@@ -125,37 +141,30 @@ class GroqLimiter {
     }
   }
 
-  // ─── circuit state transitions ───────────────────────────────────────────────
+  // ── circuit state ─────────────────────────────────────────────────────────────
 
   _onSuccess(slot) {
-    if (slot.state !== STATE.CLOSED) {
-      logger.info(`✅ Groq [${slot.label}] recovered — circuit CLOSED.`);
-    }
+    if (slot.state !== STATE.CLOSED) logger.info(`✅ Groq [${slot.label}] recovered — circuit CLOSED.`);
     slot.failures = 0;
     slot.state    = STATE.CLOSED;
     this._clearProbe(slot);
-    // If we were on backup, try switching back to primary next
-    if (slot === this._backup && this._primary.groq && this._primary.state === STATE.CLOSED) {
+    if (slot === this._backup && this._isUsable(this._primary)) {
       this._active = this._primary;
-      logger.info('🔄 Groq failback: returned to PRIMARY key.');
+      logger.info('🔄 Groq failback → PRIMARY');
     }
   }
 
   _onFailure(slot, err) {
-    slot.failures += 1;
-    logger.warn(`Groq [${slot.label}] failure ${slot.failures}/${FAILURE_THRESHOLD}: ${err.message}`);
+    slot.failures++;
+    logger.warn(`Groq [${slot.label}] failure ${slot.failures}/${FAILURE_THRESHOLD}: ${err.message?.slice(0, 120)}`);
     if (slot.failures >= FAILURE_THRESHOLD && slot.state === STATE.CLOSED) {
       slot.state = STATE.OPEN;
-      logger.error(
-        `⚡ Groq [${slot.label}] circuit OPEN — switching to ${
-          slot === this._primary && this._backup.groq ? 'BACKUP key' : 'auto-recovery mode'
-        }. Probing every ${RECOVERY_INTERVAL / 1000}s.`
-      );
+      logger.error(`⚡ Groq [${slot.label}] circuit OPEN — probing every ${RECOVERY_INTERVAL / 1000}s`);
       this._scheduleProbe(slot);
     }
   }
 
-  // ─── background probe ────────────────────────────────────────────────────────
+  // ── background probe ──────────────────────────────────────────────────────────
 
   _scheduleProbe(slot) {
     this._clearProbe(slot);
@@ -170,16 +179,15 @@ class GroqLimiter {
     if (slot.probeRunning || !slot.groq) return;
     slot.probeRunning = true;
     slot.state = STATE.HALF_OPEN;
-    logger.info(`🔍 Groq [${slot.label}] HALF_OPEN — probing…`);
+    logger.info(`🔍 Groq [${slot.label}] probing…`);
     try {
-      const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('probe timeout')), PROBE_TIMEOUT));
       await Promise.race([
         slot.groq.chat.completions.create({
           model: 'llama-3.3-70b-versatile',
           max_tokens: 1,
           messages: [{ role: 'user', content: 'hi' }],
         }),
-        timeout,
+        _timeout(PROBE_TIMEOUT, 'probe timeout'),
       ]);
       slot.probeRunning = false;
       this._onSuccess(slot);
@@ -187,24 +195,44 @@ class GroqLimiter {
     } catch (err) {
       slot.probeRunning = false;
       slot.state = STATE.OPEN;
-      logger.warn(`Groq [${slot.label}] probe failed: ${err.message} — retry in ${RECOVERY_INTERVAL / 1000}s`);
+      logger.warn(`Groq [${slot.label}] probe failed: ${err.message?.slice(0, 80)}`);
       this._scheduleProbe(slot);
     }
   }
 }
 
-// ─── helpers ──────────────────────────────────────────────────────────────────
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 function _is429(err) {
-  return err?.status === 429
-    || err?.message?.includes('429')
-    || err?.message?.toLowerCase().includes('rate limit');
+  return err?.status === 429 || String(err?.message).includes('429');
 }
 
-function _retryAfter(err) {
-  const match = err?.message?.match(/try again in\s+([\d.]+)s/i);
-  if (match) return Math.ceil(parseFloat(match[1]) * 1000) + 500;
-  return 5000;
+function _isTPD(err) {
+  const msg = String(err?.message || '');
+  return _is429(err) && (
+    msg.includes('tokens per day') ||
+    msg.includes('TPD') ||
+    (msg.includes('Limit 100000') && msg.includes('Used 99'))
+  );
+}
+
+function _isRPM(err) {
+  return _is429(err) && !_isTPD(err);
+}
+
+function _tpdResetMs(err) {
+  const match = String(err?.message).match(/try again in\s+([\d.]+)([smh])/i);
+  if (match) {
+    const val = parseFloat(match[1]);
+    const unit = match[2].toLowerCase();
+    const ms = unit === 'h' ? val * 3600000 : unit === 'm' ? val * 60000 : val * 1000;
+    return ms + 5000;
+  }
+  return TPD_RESET_MS;
+}
+
+function _timeout(ms, msg) {
+  return new Promise((_, reject) => setTimeout(() => reject(new Error(msg)), ms));
 }
 
 function _sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
