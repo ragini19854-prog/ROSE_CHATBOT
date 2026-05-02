@@ -1,9 +1,11 @@
-const config  = require('../config/index');
 const logger  = require('../utils/logger');
 const limiter = require('../utils/groqLimiter');
 
 const TEXT_MODEL   = 'llama-3.3-70b-versatile';
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+
+// Hard timeout for every AI call — if AI doesn't respond in time, fail open (SAFE)
+const AI_TIMEOUT_MS = 5_000;
 
 const HARD_RULES = [
   /\bcp\b/i,
@@ -15,7 +17,6 @@ const HARD_RULES = [
 
 const NSFW_EMOJI = new Set(['🍆','🍑','💦','🔞','🤤','🥵','👅','🍌']);
 
-// Slang and casual cursing are allowed — only flag truly harmful content.
 const TEXT_SYSTEM = `You are a strict content moderator for a Telegram group. Reply with exactly ONE word and NOTHING else.
 
 Reply "NSFW" ONLY if the message contains:
@@ -53,55 +54,70 @@ Reply "SAFE" otherwise — including normal selfies, memes, anime art that is fu
 
 Reply ONLY the single word: NSFW or SAFE.`;
 
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error(`AI timeout after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 async function scanText(text) {
   if (!text) return false;
   for (const re of HARD_RULES) if (re.test(text)) return true;
   try {
-    const res = await limiter.call((groq) =>
-      groq.chat.completions.create({
-        model: TEXT_MODEL,
-        temperature: 0,
-        max_tokens: 4,
-        messages: [
-          { role: 'system', content: TEXT_SYSTEM },
-          { role: 'user',   content: text.slice(0, 1500) },
-        ],
-      })
+    const res = await withTimeout(
+      limiter.call((groq) =>
+        groq.chat.completions.create({
+          model: TEXT_MODEL,
+          temperature: 0,
+          max_tokens: 4,
+          messages: [
+            { role: 'system', content: TEXT_SYSTEM },
+            { role: 'user',   content: text.slice(0, 1500) },
+          ],
+        })
+      ),
+      AI_TIMEOUT_MS
     );
     const out = (res.choices[0]?.message?.content || '').trim().toUpperCase();
     return out.startsWith('NSFW');
   } catch (e) {
-    logger.warn(`Groq text-moderation error: ${e.message}`);
-    return false;
+    logger.warn(`Groq text-moderation error: ${e.message?.slice(0, 120)}`);
+    return false; // fail open — never block a message because AI is down
   }
 }
 
 async function scanImage(imageBuffer, mime = 'image/jpeg') {
   if (!imageBuffer) return false;
   try {
-    const b64    = imageBuffer.toString('base64');
+    const b64     = imageBuffer.toString('base64');
     const dataUrl = `data:${mime};base64,${b64}`;
-    const res = await limiter.call((groq) =>
-      groq.chat.completions.create({
-        model: VISION_MODEL,
-        temperature: 0,
-        max_tokens: 4,
-        messages: [
-          {
-            role: 'user',
-            content: [
-              { type: 'text',      text: VISION_SYSTEM + '\n\nClassify this image:' },
-              { type: 'image_url', image_url: { url: dataUrl } },
-            ],
-          },
-        ],
-      })
+    const res = await withTimeout(
+      limiter.call((groq) =>
+        groq.chat.completions.create({
+          model: VISION_MODEL,
+          temperature: 0,
+          max_tokens: 4,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text',      text: VISION_SYSTEM + '\n\nClassify this image:' },
+                { type: 'image_url', image_url: { url: dataUrl } },
+              ],
+            },
+          ],
+        })
+      ),
+      AI_TIMEOUT_MS
     );
     const out = (res.choices[0]?.message?.content || '').trim().toUpperCase();
     return out.startsWith('NSFW');
   } catch (e) {
-    logger.warn(`Groq vision-moderation error: ${e.message}`);
-    return false;
+    logger.warn(`Groq vision-moderation error: ${e.message?.slice(0, 120)}`);
+    return false; // fail open
   }
 }
 
