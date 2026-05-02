@@ -1,24 +1,27 @@
+'use strict';
+
 /**
- * NSFW Moderation — layered pipeline
+ * NSFW Moderation — 3-layer pipeline
  *
  * TEXT:
- *   1. Rule engine (instant, free, no network) → NSFW?  stop here.
- *   2. AI (5-s timeout) for edge cases rules marked SAFE  → NSFW?  stop here.
- *   3. AI unavailable → rule result is final (fail-open only for edge cases).
+ *   1. Rule engine (instant, zero network)
+ *   2. Groq AI text scan (5-s timeout) for edge cases
+ *   3. AI down → rule result is final
  *
  * IMAGE:
- *   1. Caption through full rule engine (caption usually describes the image).
- *   2. AI vision scan (5-s timeout) on the image buffer.
- *   3. AI unavailable → caption result only (fail-open for pixel content).
+ *   1. Caption → full rule engine (instant)
+ *   2. Groq AI vision scan (5-s timeout)
+ *   3. AI down → local nsfwjs ML classifier (runs on-device, no API key)
+ *   4. All fail → fail open
  *
- * Non-AI commands are NEVER blocked by this file.
+ * The cooldown / caching lives in moderation.js.
+ * Images are NEVER skipped here — only in moderation.js cache paths.
  */
-
-'use strict';
 
 const logger  = require('../utils/logger');
 const limiter = require('../utils/groqLimiter');
 const { checkText, checkImageCaption } = require('../utils/nsfwRules');
+const { classifyImage } = require('../utils/localImageClassifier');
 
 const TEXT_MODEL   = 'llama-3.3-70b-versatile';
 const VISION_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
@@ -59,7 +62,7 @@ Reply "NSFW" if the image contains ANY of:
 - Real or graphic violence, torture, animal cruelty
 - Solicitation imagery, phone numbers + sexual context, escort ads
 
-Reply "SAFE" otherwise — including normal selfies, memes, anime art that is fully clothed and non-sexual, food, landscapes, pets, screenshots of normal text, etc.
+Reply "SAFE" otherwise.
 
 Reply ONLY the single word: NSFW or SAFE.`;
 
@@ -93,7 +96,7 @@ async function aiCheckText(text) {
     return (res.choices[0]?.message?.content || '').trim().toUpperCase().startsWith('NSFW');
   } catch (e) {
     logger.warn(`Groq text-mod unavailable: ${e.message?.slice(0, 100)}`);
-    return null; // null = AI was unavailable
+    return null; // null = AI unavailable
   }
 }
 
@@ -122,58 +125,61 @@ async function aiCheckImage(buffer, mime) {
     return (res.choices[0]?.message?.content || '').trim().toUpperCase().startsWith('NSFW');
   } catch (e) {
     logger.warn(`Groq vision-mod unavailable: ${e.message?.slice(0, 100)}`);
-    return null; // null = AI was unavailable
+    return null; // null = AI unavailable
   }
 }
 
 // ── public API ────────────────────────────────────────────────────────────────
 
 /**
- * Scan text for NSFW content.
- * Returns true (NSFW) or false (safe). Never throws.
+ * Scan text. Returns true (NSFW) or false (safe). Never throws.
  */
 async function scanText(text) {
   if (!text) return false;
 
-  // Layer 1 — rules (instant)
+  // Layer 1: rules (instant)
   const { nsfw: ruleHit, reason } = checkText(text);
   if (ruleHit) {
     logger.warn(`NSFW [rules] ${reason}`);
     return true;
   }
 
-  // Layer 2 — AI for edge cases (only if rules said SAFE)
+  // Layer 2: AI for edge cases
   const aiResult = await aiCheckText(text);
   if (aiResult === true)  return true;
   if (aiResult === false) return false;
 
-  // Layer 3 — AI unavailable → trust rules (already said SAFE → fail open)
+  // Layer 3: AI unavailable — trust rules (already said SAFE)
   return false;
 }
 
 /**
- * Scan an image for NSFW content.
- * Returns true (NSFW) or false (safe). Never throws.
+ * Scan an image buffer. Returns true (NSFW) or false (safe). Never throws.
+ *
+ * Pipeline:
+ *   1. Groq vision AI  (fast, highly accurate)
+ *   2. local nsfwjs ML (on-device, no API, still accurate)
+ *   3. fail open
  */
 async function scanImage(imageBuffer, mime = 'image/jpeg') {
   if (!imageBuffer) return false;
 
-  // Layer 1 — no-AI image rules (only works when caption is embedded in the call
-  //            via the sticker/document path; raw buffers have no text to check here)
-
-  // Layer 2 — AI vision (primary for images; rules can't read pixels)
+  // Layer 1: Groq AI vision (primary)
   const aiResult = await aiCheckImage(imageBuffer, mime);
   if (aiResult === true)  return true;
   if (aiResult === false) return false;
 
-  // Layer 3 — AI unavailable → fail open (safer than false positives)
+  // Layer 2: Groq unavailable → local nsfwjs ML classifier
+  logger.info('Image: Groq unavailable — falling back to local nsfwjs classifier');
+  const localResult = await classifyImage(imageBuffer);
+  if (localResult) return true;
+
+  // Layer 3: both unavailable → fail open
   return false;
 }
 
 /**
- * Scan an image's caption (text) for NSFW content.
- * Used by moderation.js before downloading the image.
- * Returns true (NSFW) or false (safe). Never throws.
+ * Scan an image's caption text. Returns true (NSFW) or false (safe). Never throws.
  */
 async function scanCaption(caption) {
   if (!caption) return false;
@@ -182,7 +188,6 @@ async function scanCaption(caption) {
     logger.warn(`NSFW [caption-rules] ${reason}`);
     return true;
   }
-  // AI pass for caption edge cases
   const aiResult = await aiCheckText(caption);
   return aiResult === true;
 }
