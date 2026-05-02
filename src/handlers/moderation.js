@@ -1,4 +1,4 @@
-const { scanText, scanImage } = require('../services/aiModerationService');
+const { scanText, scanImage, scanCaption } = require('../services/aiModerationService');
 const { getGroup } = require('../utils/groupSettings');
 const { logNsfw } = require('../services/loggingService');
 const logger = require('../utils/logger');
@@ -119,8 +119,9 @@ async function detect(ctx) {
     if (bad) return { bad: true, reason: 'text' };
   }
 
-  // 2. Photo
+  // 2. Photo — scan caption first (instant, no download), then pixels via AI
   if (m.photo && m.photo.length) {
+    if (m.caption && await scanCaption(m.caption)) return { bad: true, reason: 'image-caption' };
     const ph = pickPhoto(m.photo);
     if (ph) {
       const cached = fileCache.get(ph.file_id);
