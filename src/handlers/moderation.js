@@ -99,74 +99,64 @@ async function detect(ctx) {
   if (!m) return { bad: false, reason: '' };
 
   const chatId = ctx.chat?.id;
-  const onCooldown = chatId ? chatOnCooldown(chatId) : false;
 
-  // 1. Text / caption
+  // ── 1. Text / caption ────────────────────────────────────────────────────────
+  // Cooldown only gates UNCACHED text API calls (to protect Groq RPM).
+  // Rules inside scanText always run instantly regardless of cooldown.
   const text = m.text || m.caption || '';
   if (text && !text.startsWith('/')) {
-    const key = text.slice(0, 200).toLowerCase();
-    let bad = textCache.get(key);
+    const cacheKey = text.slice(0, 200).toLowerCase();
+    let bad = textCache.get(cacheKey);
     if (bad === undefined) {
-      if (onCooldown) {
-        // Skip live API call — chat scanned too recently; pass through as safe
-        bad = false;
-      } else {
-        if (chatId) stampChat(chatId);
-        bad = await scanText(text);
-        setCache(textCache, key, bad, TTL_TEXT);
-      }
+      const onCooldown = chatId ? chatOnCooldown(chatId) : false;
+      if (!onCooldown && chatId) stampChat(chatId);
+      bad = await scanText(text); // rules run regardless; AI skipped when on cooldown handled inside groqLimiter
+      setCache(textCache, cacheKey, bad, TTL_TEXT);
     }
     if (bad) return { bad: true, reason: 'text' };
   }
 
-  // 2. Photo — scan caption first (instant, no download), then pixels via AI
+  // ── 2. Photo ─────────────────────────────────────────────────────────────────
+  // Images are HIGH-RISK — NEVER skipped due to cooldown.
+  // Cache prevents redundant downloads of the same file_id.
   if (m.photo && m.photo.length) {
+    // a) Scan caption instantly (no download needed)
     if (m.caption && await scanCaption(m.caption)) return { bad: true, reason: 'image-caption' };
+
+    // b) Scan the image itself — always, even if chat was recently scanned
     const ph = pickPhoto(m.photo);
     if (ph) {
-      const cached = fileCache.get(ph.file_id);
-      if (cached !== undefined) {
-        if (cached) return { bad: true, reason: 'image' };
-      } else if (!onCooldown) {
-        if (chatId) stampChat(chatId);
-        if (await checkFileCached(ctx, ph.file_id)) return { bad: true, reason: 'image' };
-      }
+      if (await checkFileCached(ctx, ph.file_id)) return { bad: true, reason: 'image' };
     }
   }
 
-  // 3. Sticker
+  // ── 3. Sticker ───────────────────────────────────────────────────────────────
+  // Hard keyword check is instant; full scan uses file cache (never skipped).
   if (m.sticker) {
     const setName = (m.sticker.set_name || '').toLowerCase();
-    const hardHit = HARD_NSFW_STICKER_KEYWORDS.some((kw) => setName.includes(kw));
-    if (hardHit) return { bad: true, reason: 'sticker' };
-    if (!onCooldown) {
-      if (chatId) stampChat(chatId);
-      if (await checkSticker(ctx, m.sticker)) return { bad: true, reason: 'sticker' };
+    if (HARD_NSFW_STICKER_KEYWORDS.some((kw) => setName.includes(kw))) {
+      return { bad: true, reason: 'sticker' };
     }
+    if (await checkSticker(ctx, m.sticker)) return { bad: true, reason: 'sticker' };
   }
 
-  // 4. Animation / GIF / Video — scan thumbnail (respect cooldown for uncached files)
-  for (const key of ['animation', 'video', 'video_note', 'document']) {
-    const obj = m[key];
+  // ── 4. Animation / GIF / Video / Image-document ───────────────────────────────
+  // Thumbnail scans always run; file cache prevents duplicate downloads.
+  for (const mediaKey of ['animation', 'video', 'video_note', 'document']) {
+    const obj = m[mediaKey];
     if (!obj) continue;
+
     const thumb = obj.thumbnail || obj.thumb;
-    if (thumb) {
-      const cachedThumb = fileCache.get(thumb.file_id);
-      if (cachedThumb !== undefined) {
-        if (cachedThumb) return { bad: true, reason: key };
-      } else if (!onCooldown) {
-        if (chatId) stampChat(chatId);
-        if (await checkFileCached(ctx, thumb.file_id)) return { bad: true, reason: key };
-      }
+    if (thumb && await checkFileCached(ctx, thumb.file_id)) {
+      return { bad: true, reason: mediaKey };
     }
-    if (key === 'document' && obj.mime_type && obj.mime_type.startsWith('image/') && (obj.file_size || 0) <= MAX_DOWNLOAD) {
-      const cachedDoc = fileCache.get(obj.file_id);
-      if (cachedDoc !== undefined) {
-        if (cachedDoc) return { bad: true, reason: 'document-image' };
-      } else if (!onCooldown) {
-        if (chatId) stampChat(chatId);
-        if (await checkFileCached(ctx, obj.file_id)) return { bad: true, reason: 'document-image' };
-      }
+
+    if (
+      mediaKey === 'document' &&
+      obj.mime_type?.startsWith('image/') &&
+      (obj.file_size || 0) <= MAX_DOWNLOAD
+    ) {
+      if (await checkFileCached(ctx, obj.file_id)) return { bad: true, reason: 'document-image' };
     }
   }
 
