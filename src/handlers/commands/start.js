@@ -47,7 +47,7 @@ const startCommand = async (ctx) => {
 ` +
     `•──────────────────────•
 ` +
-    `🌺 ᴘᴏᴡєʀєᴅ ʙʏ <b>|𝐌 ᴀ ᴅ ᴀ ʀ ᴀ •|</b><blockquote>`;
+    `🌺 ᴘᴏᴡєʀєᴅ ʙʏ <b>|𝐌 ᴀ ᴅ ᴀ ʀ ᴀ •|</b></blockquote>`;
 
   const kb = Markup.inlineKeyboard([
     [
