@@ -25,7 +25,7 @@ const startCommand = async (ctx) => {
   }
 
   const startMsg =
-    `┌────── ˹ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ˼─── ⏤
+    `<blockquote>┌────── ˹ ɪɴғᴏʀᴍᴀᴛɪᴏɴ ˼─── ⏤
 ` +
     `┆🌺 ʜєʏ, <b>${escapeHtml(username)}</b>
 ` +
@@ -47,19 +47,19 @@ const startCommand = async (ctx) => {
 ` +
     `•──────────────────────•
 ` +
-    `🌺 ᴘᴏᴡєʀєᴅ ʙʏ <b>|𝐌 ᴀ ᴅ ᴀ ʀ ᴀ •|</b>`;
+    `🌺 ᴘᴏᴡєʀєᴅ ʙʏ <b>|𝐌 ᴀ ᴅ ᴀ ʀ ᴀ •|</b><blockquote>`;
 
   const kb = Markup.inlineKeyboard([
     [
-      Markup.button.url('➕ Add me to your group', `https://t.me/${ctx.botInfo.username}?startgroup=true`),
+      Markup.button.url('тαρ тσ ѕєє мαɢιc ✨', `https://t.me/${ctx.botInfo.username}?startgroup=true`),
     ],
     [
-      Markup.button.callback('📜 Commands', 'help_main'),
-      Markup.button.callback('ℹ️ About', 'about'),
+      Markup.button.callback('📜 cσммαи∂ѕ', 'help_main'),
+      Markup.button.callback('🌐 ωєвѕιтє', 'https://gmsxabouttgaura.netlify.app/'),
     ],
     [
-      Markup.button.url('👨‍💻 Developer', `tg://user?id=${config.ownerId}`),
-      Markup.button.url('🌐 Channel', 'https://t.me/yourchannel'),
+      Markup.button.url('👑 ɱყ ℓσя∂', `tg://user?id=${config.ownerId}`),
+      Markup.button.url('🛰️ cнαииєℓ', 'https://t.me/+1NRRqUd1replNTM1'),
     ],
   ]);
 
