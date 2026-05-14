@@ -1,5 +1,3 @@
-# ROSE_CHATBOT
-
 # 🌸 HINATA CHATBOT
 
 <div align="center">
@@ -9,6 +7,14 @@
 <img src="https://raw.githubusercontent.com/Anmol-Baranwal/Cool-GIFs-For-GitHub/main/lightning1.gif" width="100%" height="6"/>
 
 <img src="https://i.ibb.co/8gyrjZhk/image.jpg" alt="Hinata Chatbot" width="86%" style="border-radius:24px; box-shadow:0 0 60px #ff7eb3;"/>
+
+<br/><br/>
+
+<img src="https://i.ibb.co/wbrvrZ9/image.jpg" alt="Hinata Showcase 1" width="86%" style="border-radius:24px; box-shadow:0 0 60px #6c63ff;"/>
+
+<br/><br/>
+
+<img src="https://i.ibb.co/JWnXps3t/image.jpg" alt="Hinata Showcase 2" width="86%" style="border-radius:24px; box-shadow:0 0 60px #8be9fd;"/>
 
 <br/><br/>
 
@@ -278,6 +284,14 @@ ROSE_CHATBOT/
 ### ⚡ MADARA ⚡
 
 **Crafting premium Telegram bots with anime-inspired design.**
+
+<br/><br/>
+
+<img src="https://i.ibb.co/wbrvrZ9/image.jpg" width="80%" style="border-radius:20px; box-shadow:0 0 40px #ff7eb3;" alt="Developer Showcase 1"/>
+
+<br/><br/>
+
+<img src="[https://i.ibb.co/JWnXps3t/image.jpg](https://i.ibb.co/JWnXps3t/image.jpg)" width="80%" style="border-radius:20px; box-shadow:
 
 </div>
 
