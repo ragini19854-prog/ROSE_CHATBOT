@@ -287,7 +287,7 @@ ROSE_CHATBOT/
 
 <br/><br/>
 
-<img src="https://i.ibb.co/wbrvrZ9/image.jpg" width="80%" style="border-radius:20px; box-shadow:0 0 40px #ff7eb3;" alt="Developer Showcase 1"/>
+<img src="[https://i.ibb.co/JWnXps3t/image.jpg]" width="80%" style="border-radius:20px; box-shadow:0 0 40px #ff7eb3;" alt="Developer Showcase 1"/>
 
 <br/><br/>
 
