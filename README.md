@@ -291,7 +291,7 @@ ROSE_CHATBOT/
 
 <br/><br/>
 
-<img src="[https://i.ibb.co/JWnXps3t/image.jpg](https://i.ibb.co/JWnXps3t/image.jpg)" width="80%" style="border-radius:20px; box-shadow:
+<img src="[[https://i.ibb.co/JWnXps3t/image.jpg]([https://i.ibb.co/JWnXps3t/image.jpg](https://i.ibb.co/JWnXps3t/image.jpg))](https://i.ibb.co/JWnXps3t/image.jpg)" width="80%" style="border-radius:20px; box-shadow:
 
 </div>
 
