@@ -1,335 +1,283 @@
 # ROSE_CHATBOT
 
+# 🌸 HINATA CHATBOT
+
 <div align="center">
 
-<img src="https://i.ibb.co/8gyrjZhk/image.jpg" alt="Hinata Bot Banner" width="100%" style="border-radius: 20px;" />
+<a href="#"><img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,35:6c63ff,70:ff7eb3,100:ffd6e7&height=280&section=header&text=HINATA%20CHATBOT&fontSize=62&fontColor=ffffff&fontAlignY=36&desc=%E2%9C%A8%20AI%20Telegram%20Assistant%20%E2%80%A2%20NSFW%20Protection%20%E2%9C%A8&descSize=18&descAlignY=58&animation=twinkling" width="100%"/></a>
+
+<img src="https://raw.githubusercontent.com/Anmol-Baranwal/Cool-GIFs-For-GitHub/main/lightning1.gif" width="100%" height="6"/>
+
+<img src="https://i.ibb.co/8gyrjZhk/image.jpg" alt="Hinata Chatbot" width="86%" style="border-radius:24px; box-shadow:0 0 60px #ff7eb3;"/>
+
+<br/><br/>
+
+<a href="#"><img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=900&size=34&duration=2400&pause=500&color=FF7EB3&background=00000000&center=true&vCenter=true&width=1000&height=80&lines=%F0%9F%8C%B8+HINATA+CHATBOT+%F0%9F%8C%B8;%F0%9F%A4%96+Smart+AI+Telegram+Assistant;%F0%9F%9B%A1%EF%B8%8F+Advanced+NSFW+Protection;%E2%9A%A1+Lightning+Fast+and+Reliable;%F0%9F%92%96+Powered+by+Madara" alt="title-typing"/></a>
+
+<a href="#"><img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=18&duration=3000&pause=400&color=FACC15&background=00000000&center=true&vCenter=true&width=850&lines=%F0%9F%92%AC+Context-Aware+Conversations;%F0%9F%93%B7+Image+Analysis+Support;%F0%9F%91%AE+Group+Moderation+Tools;%E2%98%81%EF%B8%8F+Railway+%E2%80%A2+Render+%E2%80%A2+Docker+Ready;%F0%9F%92%AB+Elegant+Anime-Inspired+UI" alt="features-typing"/></a>
 
 <br/>
 
+<p>
+  <img src="https://img.shields.io/github/stars/ragini19854-prog/ROSE_CHATBOT?style=for-the-badge&logo=github&color=ff7eb3" />
+  <img src="https://img.shields.io/github/forks/ragini19854-prog/ROSE_CHATBOT?style=for-the-badge&logo=github&color=8be9fd" />
+  <img src="https://img.shields.io/github/repo-size/ragini19854-prog/ROSE_CHATBOT?style=for-the-badge&logo=github&color=6c63ff" />
+  <img src="https://img.shields.io/badge/PYTHON-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white&labelColor=000000" />
+</p>
+
+<p>
+  <img src="https://img.shields.io/badge/TELEGRAM-BOT-26A5E4?style=for-the-badge&logo=telegram&logoColor=white&labelColor=000000" />
+  <img src="https://img.shields.io/badge/DEPLOY-RAILWAY-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" />
+  <img src="https://img.shields.io/badge/LICENSE-MIT-fbbf24?style=for-the-badge&logo=opensourceinitiative&logoColor=white&labelColor=000000" />
+  <img src="https://komarev.com/ghpvc/?username=ragini19854-prog&style=for-the-badge&color=ff7eb3&label=HINATA+VIEWS" />
+</p>
+
+<img src="https://raw.githubusercontent.com/Anmol-Baranwal/Cool-GIFs-For-GitHub/main/lightning1.gif" width="100%" height="6"/>
+
+</div>
+
+<br/>
+
+<div align="center">
+<table><tr><td align="center" width="1100">
+
+> ### 🌸 *"Love gives us strength to protect what matters most."*
+>
+> ### — **Hinata Hyuga**
+
+</td></tr></table>
+</div>
+
+---
+
+<div align="center">
+
+# ✨ イントロ ・ INTRODUCTION ✨
+
+</div>
+
+<img align="right" src="https://user-images.githubusercontent.com/74038190/216122041-518ac897-8d92-4c6b-9b3f-ca01dcaf38ee.png" width="120"/>
+
+**HINATA CHATBOT** is a beautiful, intelligent, and powerful Telegram AI assistant built for communities and personal use.
+
+It combines:
+
+* 🤖 Natural AI conversations
+* 🛡️ NSFW image protection
+* 👮 Moderation utilities
+* 📷 Image analysis
+* ⚡ High-speed performance
+* ☁️ Cloud-ready deployment
+
+Designed with an elegant anime-inspired interface, this bot is ideal for anyone who wants a polished and reliable Telegram assistant.
+
+<br clear="right"/>
+
+<div align="center">
+<img src="https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif" width="100%"/>
+</div>
+
+---
+
+<div align="center">
+
+# 🌌 とくちょう ・ FEATURES 🌌
+
+</div>
+
+<table align="center">
+<tr>
+<td width="50%" valign="top">
+
+### 🤖 ・ AI INTELLIGENCE
+
+```diff
++ 💬 Context-aware responses
++ 🧠 Smart conversation memory
++ 🌐 API integrations
++ ⚡ Fast async processing
++ 🎯 Accurate replies
 ```
- ██╗  ██╗██╗███╗   ██╗ █████╗ ████████╗ █████╗ 
- ██║  ██║██║████╗  ██║██╔══██╗╚══██╔══╝██╔══██╗
- ███████║██║██╔██╗ ██║███████║   ██║   ███████║
- ██╔══██║██║██║╚██╗██║██╔══██║   ██║   ██╔══██║
- ██║  ██║██║██║ ╚████║██║  ██║   ██║   ██║  ██║
- ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝  ╚═╝   ╚═╝  ╚═╝
+
+</td>
+<td width="50%" valign="top">
+
+### 🛡️ ・ SAFETY SYSTEM
+
+```diff
++ 🔞 NSFW image detection
++ 🚫 Unsafe content blocking
++ 📝 Activity logging
++ 🔐 Secure configuration
++ 👑 Owner-only controls
 ```
 
-### 🌺 *ᴀɴ ᴀʟʟ-ɪɴ-ᴏɴᴇ ᴛᴇʟᴇɢʀᴀᴍ ɢʀᴏᴜᴘ ᴍᴀɴᴀɢᴇᴍᴇɴᴛ ʙᴏᴛ — ʀᴏsᴇ ʟᴇᴠᴇʟ ᴍᴏᴅᴇʀᴀᴛɪᴏɴ* 🌺
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
-<br/>
+### 👥 ・ GROUP TOOLS
 
-![Node.js](https://img.shields.io/badge/Node.js-22.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Telegraf](https://img.shields.io/badge/Telegraf-4.x-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)
-![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-ff69b4?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
-![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge)
+```diff
++ 👮 Moderation commands
++ 📢 Broadcast support
++ 📊 Bot statistics
++ ⚙️ Settings management
++ 🧹 Automatic cleanup
+```
 
-<br/>
+</td>
+<td width="50%" valign="top">
 
-> *"ѕнє'ѕ иσт נυѕт α вσт — ѕнє'ѕ тнє ρяσтєcтσя σf уσυя ɢяσυρ"* 👑
+### ✨ ・ VISUAL MAGIC
 
+```diff
++ 🌸 Animated README UI
++ ⚡ Lightning effects
++ 🖼️ Anime-themed banners
++ 💫 Typing animations
++ 🎀 Elegant design
+```
+
+</td>
+</tr>
+</table>
+
+<div align="center">
+<img src="https://user-images.githubusercontent.com/74038190/212284115-f47cd8ff-2ffb-4b04-b5bf-4d1c14c0247f.gif" width="100%"/>
 </div>
 
 ---
 
 <div align="center">
 
-## ✨ᴡʜᴀᴛ ɪs ʜɪɴᴀᴛᴀ?✨
+# ⚡ コマンド ・ COMMANDS ⚡
 
 </div>
 
-**Hinata** is a **Rose-level Telegram group management bot** built with **Node.js + Telegraf**. Designed to be the ultimate guardian of your Telegram groups — she brings powerful moderation, animated interactions, smart group controls, and a personality that makes her unforgettable.
+### 🌸 USER COMMANDS
 
-She boots up with a cinematic sticker animation, greets every user by name, and keeps your group clean, safe, and organized — all while looking absolutely stunning doing it. 🌸
+| Command  | Description       |
+| -------- | ----------------- |
+| `/start` | Start the bot     |
+| `/help`  | Show all commands |
+| `/chat`  | Talk with AI      |
+| `/ping`  | Check bot latency |
+| `/stats` | View statistics   |
+
+### 👑 ADMIN COMMANDS
+
+| Command      | Description                 |
+| ------------ | --------------------------- |
+| `/broadcast` | Send a message to all users |
+| `/settings`  | Configure bot settings      |
+| `/logs`      | View recent logs            |
 
 ---
 
 <div align="center">
 
-## 🌸 ꜰᴇᴀᴛᴜʀᴇ ꜱʜᴏᴡᴄᴀꜱᴇ
+# 🚀 デプロイ ・ DEPLOYMENT 🚀
 
 </div>
 
-### 🎬 Animated Startup Experience
-> Every `/start` command triggers a **full cinematic entrance**:
-- 🖼️ Sends a custom sticker from your sticker set
-- ✨ Plays 8-frame loading animation with Unicode art text
-- 🌺 Reveals a styled welcome card with live bot stats (uptime, heap, Node version, hostname)
-- 📸 Delivers a spoiler photo with an inline keyboard — all fully automated
-
----
-
-### 🛡️ Group Moderation
-> Rose-level moderation power at your fingertips:
-
-| Feature | Description |
-|---|---|
-| 👮 **Admin Tools** | Promote, demote, and manage admins effortlessly |
-| 🔇 **Mute / Unmute** | Silence disruptive members |
-| 🚫 **Ban / Unban** | Instantly remove bad actors |
-| 👟 **Kick** | Remove users without permanent ban |
-| 🔒 **Lock / Unlock** | Restrict what members can send (media, stickers, links) |
-| 🌊 **Anti-Flood** | Auto-punish users spamming messages |
-| 📋 **Group Rules** | Set and share group rules via deep-link `/start rules_<chatId>` |
-
----
-
-### 🤖 Smart Features
-
-| Feature | Description |
-|---|---|
-| 📝 **Notes** | Save and retrieve group notes on demand |
-| 🔍 **Filters** | Auto-reply when trigger words are sent |
-| 👋 **Welcome / Goodbye** | Custom messages for joining/leaving members |
-| 🔗 **Deep Links** | Share group rules via `t.me/bot?start=rules_<id>` |
-| 🌐 **Connection Mode** | Manage group settings from your DMs |
-| 📊 **Live Stats** | Real-time uptime, memory usage, Node.js version |
-
----
-
-### ⚡ Technical Power
-
-| Spec | Detail |
-|---|---|
-| 🟢 **Runtime** | Node.js v22.x |
-| 🤖 **Framework** | Telegraf 4.x |
-| 🗄️ **Database** | MongoDB (via Mongoose) |
-| 🧠 **Memory Tracking** | Live heap usage reported on start |
-| 🔧 **Config** | Environment-based `.env` configuration |
-| 🖼️ **Stickers** | Dynamic sticker fetching via Telegram API |
-| 🏗️ **Architecture** | Modular handler-based structure |
-
----
-
-<div align="center">
-
-## 🚀 ɢᴇᴛᴛɪɴɢ ꜱᴛᴀʀᴛᴇᴅ
-
-</div>
-
-### 📋 Prerequisites
-
-- Node.js `v18+` (v22 recommended)
-- A Telegram Bot Token from [@BotFather](https://t.me/BotFather)
-- MongoDB URI (local or Atlas)
-
----
-
-### 📦 Installation
+### 📦 INSTALL LOCALLY
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/ragini19854-prog/ROSE_CHATBOT.git
 cd ROSE_CHATBOT
-
-# 2. Install dependencies
-npm install
-
-# 3. Set up your environment variables
-cp .env.example .env
+pip install -U -r requirements.txt
+python main.py
 ```
 
----
-
-### ⚙️ Environment Variables
-
-Create a `.env` file in the root directory and fill in:
+### ⚙️ ENVIRONMENT VARIABLES
 
 ```env
-# ──────────────────────────────
-# 🤖 BOT CORE
-# ──────────────────────────────
-BOT_TOKEN=your_telegram_bot_token_here
-OWNER_ID=your_telegram_user_id_here
-
-# ──────────────────────────────
-# 🗄️ DATABASE
-# ──────────────────────────────
-MONGO_URI=mongodb://localhost:27017/hinata
-
-# ──────────────────────────────
-# 🎨 CUSTOMIZATION (optional)
-# ──────────────────────────────
-START_IMAGE_URL=https://i.ibb.co/PsVzsK8x/image.jpg
-START_STICKER_SET=Koylakoyla_by_fStikBot
+BOT_TOKEN=your_bot_token
+OWNER_ID=123456789
+OPENAI_API_KEY=your_api_key
+MONGO_URI=your_mongodb_uri
+LOG_GROUP_ID=-1001234567890
 ```
 
----
+### 🚂 DEPLOY ON RAILWAY
 
-### ▶️ Running the Bot
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+
+### 🐳 DOCKER
 
 ```bash
-# Production
-npm start
-
-# Development (with auto-restart)
-npm run dev
+docker build -t hinata-chatbot .
+docker run -d --env-file .env hinata-chatbot
 ```
 
----
+### 📁 PROJECT STRUCTURE
 
-<div align="center">
-
-## 📁 ᴘʀᴏᴊᴇᴄᴛ ꜱᴛʀᴜᴄᴛᴜʀᴇ
-
-</div>
-
-```
+```text
 ROSE_CHATBOT/
-│
-├── 📂 src/
-│   ├── 📂 handlers/
-│   │   ├── 📂 commands/
-│   │   │   ├── 🌸 start.js          ← Animated startup command
-│   │   │   ├── 🛡️ ban.js            ← Ban/unban handlers
-│   │   │   ├── 🔇 mute.js           ← Mute/unmute handlers
-│   │   │   └── 📋 rules.js          ← Group rules handler
-│   │   └── 📂 callbacks/
-│   │       └── 💬 help.js           ← Help menu callback
-│   │
-│   ├── 📂 utils/
-│   │   ├── 🔧 helpers.js            ← formatDuration, escapeHtml
-│   │   └── 🏘️ groupSettings.js      ← Group DB operations
-│   │
-│   ├── 📂 models/                   ← MongoDB Mongoose models
-│   ├── 📂 middleware/               ← Bot middleware (auth, logging)
-│   ├── 📂 config/
-│   │   └── ⚙️ index.js              ← Central config (ownerId, etc.)
-│   │
-│   └── 🤖 bot.js                    ← Bot entry point
-│
-├── 📄 package.json
-├── 📄 .env.example
-└── 📄 README.md
+├── main.py
+├── config.py
+├── handlers/
+├── modules/
+├── requirements.txt
+├── Dockerfile
+├── Procfile
+└── README.md
 ```
+
+<div align="center">
+<img src="https://user-images.githubusercontent.com/74038190/212284158-e840e285-664b-44d7-b79b-e264b5e54825.gif" width="100%"/>
+</div>
 
 ---
 
 <div align="center">
 
-## 🌺 ᴄᴏᴍᴍᴀɴᴅ ʟɪꜱᴛ
+# 🛠️ ぎじゅつ ・ TECH STACK 🛠️
+
+<br/>
+
+<img src="https://skillicons.dev/icons?i=python,git,github,vscode,linux,docker,mongodb&perline=7"/>
+
+| Technology            | Purpose          |
+| --------------------- | ---------------- |
+| 🐍 Python             | Core language    |
+| 🤖 Telegram Framework | Bot interactions |
+| 🛡️ NudeNet           | NSFW detection   |
+| 💾 MongoDB            | Data storage     |
+| ☁️ Railway / Render   | Hosting          |
+| 🐳 Docker             | Containerization |
 
 </div>
 
-### 👤 General Commands
+---
 
-| Command | Description |
-|---|---|
-| `/start` | Launch Hinata with full animation |
-| `/help` | View all available commands |
-| `/rules` | View the group rules |
+<div align="center">
+<table><tr><td align="center" width="1100">
 
-### 👮 Admin Commands
+> ### 💜 *"Never go back on your word, because that is your ninja way."*
+>
+> ### — **Hinata Hyuga**
 
-| Command | Description |
-|---|---|
-| `/ban` | Ban a user from the group |
-| `/unban` | Unban a previously banned user |
-| `/kick` | Kick a user (they can rejoin) |
-| `/mute` | Mute a user |
-| `/unmute` | Unmute a user |
-| `/promote` | Promote a user to admin |
-| `/demote` | Demote an admin |
-
-### ⚙️ Group Management
-
-| Command | Description |
-|---|---|
-| `/setrules` | Set the group rules |
-| `/lock` | Lock a specific chat type |
-| `/unlock` | Unlock a specific chat type |
-| `/filters` | List all active filters |
-| `/notes` | List saved notes |
+</td></tr></table>
+</div>
 
 ---
 
 <div align="center">
 
-## 💡 ʜᴏᴡ ᴅᴇᴇᴘ ʟɪɴᴋꜱ ᴡᴏʀᴋ
+# 👤 だれ ・ DEVELOPER 👤
 
-</div>
+<br/>
 
-Hinata supports **Telegram deep links** for sharing group rules directly:
+<img src="https://i.ibb.co/8gyrjZhk/image.jpg" width="240" style="border-radius:50%; border:5px solid #ff7eb3; box-shadow:0 0 50px #ff7eb3, 0 0 100px #6c63ff;" alt="Developer"/>
 
-```
-https://t.me/YourBotUsername?start=rules_-1001234567890
-```
+<br/><br/>
 
-When a user clicks this link:
-1. Hinata opens in their DM
-2. She automatically fetches the rules for that specific group
-3. Displays them beautifully formatted — no commands needed
+### ⚡ MADARA ⚡
 
----
-
-<div align="center">
-
-## 🎬 ꜱᴛᴀʀᴛᴜᴘ ᴀɴɪᴍᴀᴛɪᴏɴ ꜰʟᴏᴡ
-
-</div>
-
-```
-User sends /start
-       │
-       ▼
-┌─────────────────┐
-│  Send Sticker   │  ← Fetched live from Telegram API
-│   (2 seconds)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│       Loading Frame Animation       │
-│                                     │
-│  нℓσ вαву ✨  →  ℓσα∂ιиɢ.         │
-│  ℓσα∂ιиɢ.. →  ℓσα∂ιиɢ...          │
-│  нιиαтα  →  нιиαтα χ               │
-│  нιиαтα χ ιиfιиιту  →  ѕтαятє∂ 👑 │
-│                                     │
-│  (200ms per frame × 8 frames)       │
-└────────┬────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────────────────┐
-│     Welcome Card + Inline Menu      │
-│                                     │
-│  🌺 Hey, [Name]! I am Hinata ✨     │
-│  ➥ Uptime / Heap / Node / Host      │
-│  📸 Spoiler photo with buttons      │
-└─────────────────────────────────────┘
-```
-
----
-
-<div align="center">
-
-## 🤝 ᴄᴏɴᴛʀɪʙᴜᴛɪɴɢ
-
-</div>
-
-Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
-
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit your changes: `git commit -m 'Add some AmazingFeature'`
-4. Push to the branch: `git push origin feature/AmazingFeature`
-5. Open a Pull Request
-
----
-
-<div align="center">
-
-## 📞 ꜱᴜᴘᴘᴏʀᴛ & ʟɪɴᴋꜱ
-
-</div>
-
-<div align="center">
-
-[![Telegram Channel](https://img.shields.io/badge/Channel-Join%20Us-2CA5E0?style=for-the-badge&logo=telegram)](https://t.me/+1NRRqUd1replNTM1)
-[![Website](https://img.shields.io/badge/Website-Visit-ff69b4?style=for-the-badge&logo=google-chrome&logoColor=white)](https://gmsxabouttgaura.netlify.app/)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/ragini19854-prog/ROSE_CHATBOT)
+**Crafting premium Telegram bots with anime-inspired design.**
 
 </div>
 
@@ -337,22 +285,29 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 
 <div align="center">
 
-## ⚖️ ʟɪᴄᴇɴꜱᴇ
+# ⭐ SUPPORT THE PROJECT ⭐
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+If you like this project:
+
+* ⭐ Star the repository
+* 🍴 Fork the project
+* 🐞 Report issues
+* 💡 Suggest new features
+
+</div>
 
 ---
 
-```
-┌──────────────────────────────────────────┐
-│                                          │
-│   🌺 ᴘᴏᴡєʀєᴅ ʙʏ  |𝐌 ᴀ ᴅ ᴀ ʀ ᴀ •|    │
-│                                          │
-│      ʙᴜɪʟᴛ ᴡɪᴛʜ ❤️ ꜰᴏʀ ᴛᴇʟᴇɢʀᴀᴍ       │
-│                                          │
-└──────────────────────────────────────────┘
-```
+<div align="center">
 
-*ѕтαятє∂ 👑 — нιиαтα χ ιиfιиιту*
+<img src="https://raw.githubusercontent.com/Anmol-Baranwal/Cool-GIFs-For-GitHub/main/lightning1.gif" width="100%" height="6"/>
+
+<br/><br/>
+
+<a href="#"><img src="https://readme-typing-svg.demolab.com?font=Orbitron&weight=800&size=26&duration=2800&pause=600&color=FF7EB3&background=00000000&center=true&vCenter=true&width=900&lines=%E2%9C%A8+If+you+like+this+project%2C+drop+a+%E2%AD%90+%E2%9C%A8;%F0%9F%92%96+Built+with+love+by+Madara+%F0%9F%92%96;%F0%9F%8C%B8+Inspired+by+Hinata+Hyuga+%F0%9F%8C%B8;%E2%9A%A1+Elegant+%E2%80%A2+Powerful+%E2%80%A2+Intelligent+%E2%9A%A1" alt="footer-typing"/></a>
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:ff7eb3,100:6c63ff&height=200&section=footer&text=%F0%9F%8C%B8%20HINATA%20CHATBOT%20%F0%9F%8C%B8&fontSize=46&fontColor=ffffff&fontAlignY=72&animation=twinkling" width="100%"/>
 
 </div>
