@@ -10,7 +10,7 @@
 
 <br/><br/>
 
-<img src="https://i.ibb.co/wbrvrZ9/image.jpg" alt="Hinata Showcase 1" width="86%" style="border-radius:24px; box-shadow:0 0 60px #6c63ff;"/>
+<img src="https://i.ibb.co/ttgM9BV/image.jpg" alt="Hinata Showcase 1" width="86%" style="border-radius:24px; box-shadow:0 0 60px #6c63ff;"/>
 
 <br/><br/>
 
