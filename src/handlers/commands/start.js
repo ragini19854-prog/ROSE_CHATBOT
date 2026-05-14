@@ -1,14 +1,12 @@
 const os = require('os');
-const { Markup } = require('telegraf'); // ✅ FIXED: Added missing Markup import
+const { Markup } = require('telegraf');
 const config = require('../../config/index');
 const { formatDuration, escapeHtml } = require('../../utils/helpers');
 const { getGroup } = require('../../utils/groupSettings');
-const { getFirstSticker } = require('../../utils/stickerCache');
 
 const STICKER_SET = process.env.START_STICKER_SET || 'Koylakoyla_by_fStikBot';
 
-// Loading frames — shown one at a time, each replacing the previous,
-// at 0.2 s per frame as requested.
+// Loading frames
 const LOADING_FRAMES = [
   'нℓσ вαву ✨',
   'ℓσα∂ιиɢ.',
@@ -20,9 +18,25 @@ const LOADING_FRAMES = [
   'ѕтαятє∂ 👑',
 ];
 
-const FRAME_DELAY_MS  = 200;   // 0.2 s per frame
-const STICKER_HOLD_MS = 2000;  // sticker visible for 2 s
+const FRAME_DELAY_MS  = 200;
+const STICKER_HOLD_MS = 2000;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Fetches the first sticker file_id from a sticker set.
+ * Replaces the missing stickerCache module.
+ */
+async function getFirstSticker(telegram, stickerSetName) {
+  try {
+    const stickerSet = await telegram.getStickerSet(stickerSetName);
+    if (stickerSet && stickerSet.stickers && stickerSet.stickers.length > 0) {
+      return stickerSet.stickers[0].file_id;
+    }
+  } catch (err) {
+    console.error('[startCommand] Failed to fetch sticker set:', err.message);
+  }
+  return null;
+}
 
 /**
  * Run the start-up animation:
@@ -74,7 +88,6 @@ async function playStartAnimation(ctx) {
     }
   }
 
-  // brief pause on the final frame so it's readable
   await sleep(FRAME_DELAY_MS);
   try {
     await ctx.telegram.deleteMessage(ctx.chat.id, loadingMsg.message_id);
@@ -94,14 +107,12 @@ const startCommand = async (ctx) => {
   const arg = (ctx.message?.text || '').split(/\s+/)[1];
   if (arg && arg.startsWith('rules_')) {
     const chatId = parseInt(arg.slice(6), 10);
-    // ✅ FIXED: Use Number.isInteger + isFinite for proper validation
     if (Number.isInteger(chatId) && isFinite(chatId)) {
       try {
         const g   = await getGroup(chatId);
         const txt = g.rules || 'No rules set for that chat.';
         return ctx.reply(`📜 <b>Rules</b>:\n\n${escapeHtml(txt)}`, { parse_mode: 'HTML' });
       } catch (err) {
-        // ✅ FIXED: Inform user instead of silently failing
         console.error('[startCommand] Failed to fetch group rules:', err.message);
         return ctx.reply('⚠️ Failed to fetch rules for that chat. Please try again later.');
       }
@@ -124,7 +135,6 @@ const startCommand = async (ctx) => {
     `•──────────────────────•\n` +
     `🌺 ᴘᴏᴡєʀєᴅ ʙʏ <b>|𝐌 ᴀ ᴅ ᴀ ʀ ᴀ •|</b></blockquote>`;
 
-  // ✅ FIXED: Markup is now properly imported and will work correctly
   const kb = Markup.inlineKeyboard([
     [
       Markup.button.url('тαρ тσ ѕєє мαɢιc ✨', `https://t.me/${ctx.botInfo.username}?startgroup=true`),
