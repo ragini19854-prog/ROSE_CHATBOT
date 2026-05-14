@@ -57,7 +57,7 @@ const ping = async (ctx) => {
   };
 
   const text =
-    `🏓 <b>Pong!</b>\n` +
+    `<blockquote>🏓 <b>Pong!</b>\n` +
     `┏━━━━━━━━━━━━━━━━━━━━━┓\n` +
     `┃  ⚡ <b>Telegram</b>: <code>${apiMs}ms</code> ${bar(apiMs)}\n` +
     `┃  🗄 <b>MongoDB</b> : <code>${dbMs >= 0 ? dbMs + 'ms' : 'n/a'}</code> ${bar(dbMs)}\n` +
@@ -65,7 +65,7 @@ const ping = async (ctx) => {
     `┃  🧠 <b>Heap</b>    : <b>${heap} MB</b>\n` +
     `┃  🛰 <b>Node</b>    : <b>${process.version}</b>\n` +
     `┗━━━━━━━━━━━━━━━━━━━━━┛\n` +
-    `🌸 <i>Hinata is awake and watching.</i>`;
+    `🌸 <i>Hinata is awake and watching.</i></blockquote>`;
 
   try {
     await ctx.replyWithPhoto(
