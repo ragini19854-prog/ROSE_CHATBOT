@@ -149,7 +149,7 @@ const startCommand = async (ctx) => {
     ],
   ]);
 
-  const photoUrl = process.env.START_IMAGE_URL || 'https://i.ibb.co/PsVzsK8x/image.jpg';
+  const photoUrl = process.env.START_IMAGE_URL || 'https://i.ibb.co/JWnXps3t/image.jpg';
   try {
     await ctx.replyWithPhoto(photoUrl, {
       caption: startMsg,
