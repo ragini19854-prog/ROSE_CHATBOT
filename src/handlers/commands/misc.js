@@ -70,7 +70,7 @@ const ping = async (ctx) => {
   try {
     await ctx.replyWithPhoto(
       { url: config.pingImageUrl },
-      { caption: text, parse_mode: 'HTML' }
+      { caption: text, parse_mode: 'HTML', has_spoiler: true }
     );
   } catch {
     await safeReply(ctx, text);

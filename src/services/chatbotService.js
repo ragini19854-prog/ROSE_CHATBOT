@@ -67,11 +67,18 @@ function buildSystem(mood, recentMoods) {
   return prompt;
 }
 
+// ── owner question shortcut ────────────────────────────────────────────────────
+
+const OWNER_REGEX = /\b(who(('?s| is) (your|ur|the) (owner|creator|master|lord|developer|dev|made you|built you))|your owner|ur owner|owner (of you|hai|kaun)|tumhara owner|aapka owner|kisne banaya|kisne create|who made you|who created you|who built you)\b/i;
+
 // ── main ───────────────────────────────────────────────────────────────────────
 
 async function getHinataReply(userId, chatId, message) {
   if (!config.groqApiKey && !config.groqApiKey2)
     return 'My AI brain is not configured yet. Ask the owner to set GROQ_API_KEY. 🌸';
+
+  if (OWNER_REGEX.test(message))
+    return 'My cute owner is @aiused 👑🌸 They created me with lots of love! ✨';
 
   if (isOnCooldown(userId))
     return 'Heyyy, slow down a little~ give me a moment to think 🌸';

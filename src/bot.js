@@ -74,20 +74,28 @@ bot.use(cleaning.cleanCommandMiddleware);          // delete commands after run
 bot.start(startCommand);
 bot.help(async (ctx) => {
   const { Markup } = require('telegraf');
+  const { ff } = require('./utils/font');
+  const helpTitle =
+    `<blockquote>` +
+    `╔══════════════════════╗\n` +
+    `║  📜  <b>${ff('Hinata Commands')}</b>  📜  ║\n` +
+    `╚══════════════════════╝\n\n` +
+    `sєℓєcт α cατєɢσяყ вєℓσω 👇` +
+    `</blockquote>`;
   const kb = Markup.inlineKeyboard([
-    [Markup.button.callback('Admin', 'help_admin'), Markup.button.callback('Bans', 'help_bans'), Markup.button.callback('Mutes', 'help_mutes')],
-    [Markup.button.callback('Warnings', 'help_warns'), Markup.button.callback('Notes', 'help_notes'), Markup.button.callback('Filters', 'help_filters')],
-    [Markup.button.callback('Greetings', 'help_greet'), Markup.button.callback('Rules', 'help_rules'), Markup.button.callback('Locks', 'help_locks')],
-    [Markup.button.callback('Antiflood', 'help_flood'), Markup.button.callback('Blocklists', 'help_black'), Markup.button.callback('Approval', 'help_appr')],
-    [Markup.button.callback('Pins', 'help_pins'), Markup.button.callback('Purges', 'help_purges'), Markup.button.callback('Reports', 'help_reports')],
-    [Markup.button.callback('Connections', 'help_conn'), Markup.button.callback('Disabling', 'help_dis'), Markup.button.callback('Log', 'help_log')],
-    [Markup.button.callback('CAPTCHA', 'help_captcha'), Markup.button.callback('AntiRaid', 'help_raid'), Markup.button.callback('Cleaning', 'help_clean')],
-    [Markup.button.callback('Topics', 'help_topics'), Markup.button.callback('Federations', 'help_fed'), Markup.button.callback('Misc', 'help_misc')],
-    [Markup.button.callback('Economy', 'help_eco'), Markup.button.callback('Games', 'help_games'), Markup.button.callback('Anime', 'help_anime')],
-    [Markup.button.callback('AI Chatbot', 'help_ai')],
-    [Markup.button.callback('Formatting', 'help_fmt'), Markup.button.callback('Privacy', 'help_priv'), Markup.button.callback('Languages', 'help_lang')],
+    [Markup.button.callback(`👮 ${ff('Admin')}`, 'help_admin'),      Markup.button.callback(`🔨 ${ff('Bans')}`, 'help_bans'),        Markup.button.callback(`🔇 ${ff('Mutes')}`, 'help_mutes')],
+    [Markup.button.callback(`⚠️ ${ff('Warns')}`, 'help_warns'),      Markup.button.callback(`📝 ${ff('Notes')}`, 'help_notes'),      Markup.button.callback(`🔍 ${ff('Filters')}`, 'help_filters')],
+    [Markup.button.callback(`👋 ${ff('Greetings')}`, 'help_greet'),  Markup.button.callback(`📜 ${ff('Rules')}`, 'help_rules'),      Markup.button.callback(`🔒 ${ff('Locks')}`, 'help_locks')],
+    [Markup.button.callback(`🌊 ${ff('Antiflood')}`, 'help_flood'),  Markup.button.callback(`🚫 ${ff('Blocklists')}`, 'help_black'), Markup.button.callback(`✅ ${ff('Approval')}`, 'help_appr')],
+    [Markup.button.callback(`📌 ${ff('Pins')}`, 'help_pins'),        Markup.button.callback(`🧹 ${ff('Purges')}`, 'help_purges'),    Markup.button.callback(`🚨 ${ff('Reports')}`, 'help_reports')],
+    [Markup.button.callback(`🔗 ${ff('Connects')}`, 'help_conn'),    Markup.button.callback(`⚙️ ${ff('Disable')}`, 'help_dis'),      Markup.button.callback(`📡 ${ff('Logging')}`, 'help_log')],
+    [Markup.button.callback(`🛡️ ${ff('Captcha')}`, 'help_captcha'),  Markup.button.callback(`🛡️ ${ff('AntiRaid')}`, 'help_raid'),    Markup.button.callback(`🧽 ${ff('Cleaning')}`, 'help_clean')],
+    [Markup.button.callback(`🗂️ ${ff('Topics')}`, 'help_topics'),    Markup.button.callback(`🌐 ${ff('Federations')}`, 'help_fed'),  Markup.button.callback(`🧰 ${ff('Misc')}`, 'help_misc')],
+    [Markup.button.callback(`💰 ${ff('Economy')}`, 'help_eco'),      Markup.button.callback(`🎮 ${ff('Games')}`, 'help_games'),      Markup.button.callback(`🌸 ${ff('Anime')}`, 'help_anime')],
+    [Markup.button.callback(`🤖 ${ff('AI Chatbot')}`, 'help_ai'),    Markup.button.callback(`🔐 ${ff('Privacy')}`, 'help_priv'),     Markup.button.callback(`📐 ${ff('Format')}`, 'help_fmt')],
+    [Markup.button.callback(`📦 ${ff('Import/Export')}`, 'help_io'), Markup.button.callback(`ℹ️ ${ff('About')}`, 'about')],
   ]);
-  await ctx.reply('📜 <b>Hinata Commands</b>\n\nPick a category:', { parse_mode: 'HTML', ...kb });
+  await ctx.reply(helpTitle, { parse_mode: 'HTML', ...kb });
 });
 
 // Bans
@@ -284,6 +292,7 @@ bot.command('wordguess', games.wordguess);
 bot.command('gamew', games.gamew);
 bot.command('guess', games.guess);
 bot.command('trivia', games.trivia);
+bot.command('wordseek', games.wordseek);
 
 // Extras
 bot.command(['formathelp', 'markdownhelp'], extras.formathelp);
